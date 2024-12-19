@@ -134,7 +134,7 @@ if [[ $? -ne 0 ]]; then
 	curlError=true
 fi
 
-if ! curlError
+if [$curlError == false]
 then
 
 inverterinfo_brand=$(jq -r '.data.brand' inverterinfo.json)
