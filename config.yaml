@@ -1,6 +1,6 @@
 name: "SolarSynk"
 description: "BlythMeisterPort - Home Assistant add-on for syncing solar/inverter data from SynSynk.net"
-version: "3.0.11"
+version: "3.0.12"
 slug: "solar_synk"
 init: false
 arch:
