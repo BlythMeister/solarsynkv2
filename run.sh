@@ -288,7 +288,30 @@ EntityLogOutput="-o tmpcurllog.json"
 if [ $Enable_Verbose_Log == "true" ]
 then
 EntityLogOutput=""
-echo "If ALL values are NULL then something went wrong."
+echo "Raw data per file"
+echo ------------------------------------------------------------------------------
+echo "pvindata.json"
+cat pvindata.json
+echo ------------------------------------------------------------------------------
+echo "griddata.json"
+cat griddata.json
+echo ------------------------------------------------------------------------------
+echo "loaddata.json"
+cat loaddata.json
+echo ------------------------------------------------------------------------------
+echo "batterydata.json"
+cat batterydata.json
+echo ------------------------------------------------------------------------------
+echo "outputdata.json"
+cat outputdata.json
+echo ------------------------------------------------------------------------------
+echo "dcactemp.json"
+cat dcactemp.json
+echo ------------------------------------------------------------------------------
+echo "inverterinfo.json"
+cat inverterinfo.json
+echo ------------------------------------------------------------------------------
+echo "Values to send.  If ALL values are NULL then something went wrong:"
 # Dump of all values
 echo "battery_capacity" $battery_capacity
 echo "battery_chargevolt" $battery_chargevolt
