@@ -83,6 +83,7 @@ rm -rf batterydata.json
 rm -rf outputdata.json
 rm -rf dcactemp.json
 rm -rf inverterinfo.json
+rm -rf settings.json
 
 curlError=0
 echo "Please wait while curl is fetching input, grid, load, battery & output data..."
@@ -310,6 +311,9 @@ cat dcactemp.json
 echo ------------------------------------------------------------------------------
 echo "inverterinfo.json"
 cat inverterinfo.json
+echo ------------------------------------------------------------------------------
+echo "settings.json"
+cat settings.json
 echo ------------------------------------------------------------------------------
 echo "Values to send.  If ALL values are NULL then something went wrong:"
 # Dump of all values
