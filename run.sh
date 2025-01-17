@@ -154,12 +154,6 @@ echo "Plant Name:" $inverterinfo_plantname
 echo "Inverter S/N:" $inverterinfo_serial
 echo ------------------------------------------------------------------------------
 
-#Unused
-#curl -s -k -X GET -H "Content-Type: application/json" -H "authorization: Bearer $ServerAPIBearerToken" https://api.sunsynk.net/api/v1/inverter/$sunsynk_serial/flow -o "flowdata.json"
-# Read Settings https://api.sunsynk.net/api/v1/common/setting/$sunsynk_serial/read
-# Save Settings https://api.sunsynk.net/api/v1/common/setting/$sunsynk_serial/set
-
-
 echo "Data fetched for serial $inverter_serial. Enable verbose logging to see more information."
 #Total Battery
 battery_capacity=$(jq -r '.data.capacity' batterydata.json); if [ $battery_capacity == "null" ]; then battery_capacity="0"; fi;
@@ -187,7 +181,6 @@ battery2_power=$(jq -r '.data.batteryPower2' batterydata.json); if [ $battery2_p
 battery2_soc=$(jq -r '.data.batterySoc2' batterydata.json); if [ $battery_capacity == "null" ]; then battery_capacity="0"; fi;
 battery2_temperature=$(jq -r '.data.batteryTemp2' batterydata.json); if [ $battery2_temperature == "null" ]; then battery2_temperature="0"; fi;
 battery2_status=$(jq -r '.data.batteryStatus2' batterydata.json); if [ $battery2_status == "null" ]; then battery2_status="0"; fi;
-
 
 day_battery_charge=$(jq -r '.data.etodayChg' batterydata.json); if [ $day_battery_charge == "null" ]; then day_battery_charge="0"; fi;
 day_battery_discharge=$(jq -r '.data.etodayDischg' batterydata.json); if [ $day_battery_discharge == "null" ]; then day_battery_discharge="0"; fi;
@@ -283,8 +276,6 @@ priority_load=$(jq -r '.data.energyMode' settings.json);
 dc_temp=$(jq -r '.data.infos[0].records[-1].value' dcactemp.json)
 ac_temp=$(jq -r '.data.infos[1].records[-1].value' dcactemp.json)
 
-
-
 EntityLogOutput="-o tmpcurllog.json"
 if [ $Enable_Verbose_Log == "true" ]
 then
@@ -376,7 +367,6 @@ echo "inverter_power2" $inverter_power2
 echo "inverter_voltage2" $inverter_voltage2
 echo "inverter_current2" $inverter_current2
 
-
 #Load
 echo "load_current" $load_current
 echo "load_frequency" $load_frequency
@@ -404,6 +394,7 @@ echo "pv4_power" $pv4_power
 echo "pv4_voltage" $pv4_voltage
 
 echo "overall_state" $overall_state
+
 #Settings Sensors
 echo "prog1_time:" $prog1_time
 echo "prog2_time:" $prog2_time
@@ -429,10 +420,10 @@ echo "prog6_capacity:" $prog6_capacity
 echo "battery_shutdown_cap:" $battery_shutdown_cap
 echo "use_timer:" $use_timer
 echo "priority_load:" $priority_load
+
 #Temperature
 echo "dc_temp:" $dc_temp
 echo "ac_temp:" $ac_temp
-
 
 echo ------------------------------------------------------------------------------
 echo "Attempting to update the following sensor entities"
@@ -502,7 +493,6 @@ curl -s -k -X POST -H "Authorization: Bearer $HA_LongLiveToken" -H "Content-Type
 curl -s -k -X POST -H "Authorization: Bearer $HA_LongLiveToken" -H "Content-Type: application/json" -d '{"attributes": {"device_class": "power", "state_class":"measurement", "unit_of_measurement": "W", "friendly_name": "Inverter Power2"}, "state": "'"$inverter_power2"'"}' $HTTP_Connect_Type://$Home_Assistant_IP:$Home_Assistant_PORT/api/states/sensor.solarsynk_"$inverter_serial"_inverter_power2 $EntityLogOutput
 curl -s -k -X POST -H "Authorization: Bearer $HA_LongLiveToken" -H "Content-Type: application/json" -d '{"attributes": {"device_class": "voltage", "state_class":"measurement", "unit_of_measurement": "V", "friendly_name": "Inverter Voltage2"}, "state": "'"$inverter_voltage2"'"}' $HTTP_Connect_Type://$Home_Assistant_IP:$Home_Assistant_PORT/api/states/sensor.solarsynk_"$inverter_serial"_inverter_voltage2 $EntityLogOutput
 
-
 #Load
 curl -s -k -X POST -H "Authorization: Bearer $HA_LongLiveToken" -H "Content-Type: application/json" -d '{"attributes": {"device_class": "current", "state_class":"measurement", "unit_of_measurement": "A", "friendly_name": "Load Current"}, "state": "'"$load_current"'"}' $HTTP_Connect_Type://$Home_Assistant_IP:$Home_Assistant_PORT/api/states/sensor.solarsynk_"$inverter_serial"_load_current $EntityLogOutput
 curl -s -k -X POST -H "Authorization: Bearer $HA_LongLiveToken" -H "Content-Type: application/json" -d '{"attributes": {"device_class": "frequency", "state_class":"measurement", "unit_of_measurement": "Hz", "friendly_name": "Load Freq"}, "state": "'"$load_frequency"'"}' $HTTP_Connect_Type://$Home_Assistant_IP:$Home_Assistant_PORT/api/states/sensor.solarsynk_"$inverter_serial"_load_frequency $EntityLogOutput
@@ -514,8 +504,6 @@ curl -s -k -X POST -H "Authorization: Bearer $HA_LongLiveToken" -H "Content-Type
 curl -s -k -X POST -H "Authorization: Bearer $HA_LongLiveToken" -H "Content-Type: application/json" -d '{"attributes": {"device_class": "power", "state_class":"measurement", "unit_of_measurement": "W", "friendly_name": "Load UPS Power L2"}, "state": "'"$load_upsPowerL2"'"}' $HTTP_Connect_Type://$Home_Assistant_IP:$Home_Assistant_PORT/api/states/sensor.solarsynk_"$inverter_serial"_load_upspowerl2 $EntityLogOutput
 curl -s -k -X POST -H "Authorization: Bearer $HA_LongLiveToken" -H "Content-Type: application/json" -d '{"attributes": {"device_class": "power", "state_class":"measurement", "unit_of_measurement": "W", "friendly_name": "Load UPS Power L3"}, "state": "'"$load_upsPowerL3"'"}' $HTTP_Connect_Type://$Home_Assistant_IP:$Home_Assistant_PORT/api/states/sensor.solarsynk_"$inverter_serial"_load_upspowerl3 $EntityLogOutput
 curl -s -k -X POST -H "Authorization: Bearer $HA_LongLiveToken" -H "Content-Type: application/json" -d '{"attributes": {"device_class": "power", "state_class":"measurement", "unit_of_measurement": "W", "friendly_name": "Load UPS Power Total"}, "state": "'"$load_upsPowerTotal"'"}' $HTTP_Connect_Type://$Home_Assistant_IP:$Home_Assistant_PORT/api/states/sensor.solarsynk_"$inverter_serial"_loadupspowertotal $EntityLogOutput
-
-
 
 #SolarPanels
 curl -s -k -X POST -H "Authorization: Bearer $HA_LongLiveToken" -H "Content-Type: application/json" -d '{"attributes": {"device_class": "current", "state_class":"measurement", "unit_of_measurement": "A", "friendly_name": "PV1 Current"}, "state": "'"$pv1_current"'"}' $HTTP_Connect_Type://$Home_Assistant_IP:$Home_Assistant_PORT/api/states/sensor.solarsynk_"$inverter_serial"_pv1_current $EntityLogOutput
@@ -530,7 +518,6 @@ curl -s -k -X POST -H "Authorization: Bearer $HA_LongLiveToken" -H "Content-Type
 curl -s -k -X POST -H "Authorization: Bearer $HA_LongLiveToken" -H "Content-Type: application/json" -d '{"attributes": {"device_class": "current", "state_class":"measurement", "unit_of_measurement": "A", "friendly_name": "PV2 Current"}, "state": "'"$pv4_current"'"}' $HTTP_Connect_Type://$Home_Assistant_IP:$Home_Assistant_PORT/api/states/sensor.solarsynk_"$inverter_serial"_pv4_current $EntityLogOutput
 curl -s -k -X POST -H "Authorization: Bearer $HA_LongLiveToken" -H "Content-Type: application/json" -d '{"attributes": {"device_class": "power", "state_class":"measurement", "unit_of_measurement": "W", "friendly_name": "PV2 Power"}, "state": "'"$pv4_power"'"}' $HTTP_Connect_Type://$Home_Assistant_IP:$Home_Assistant_PORT/api/states/sensor.solarsynk_"$inverter_serial"_pv4_power $EntityLogOutput
 curl -s -k -X POST -H "Authorization: Bearer $HA_LongLiveToken" -H "Content-Type: application/json" -d '{"attributes": {"device_class": "voltage", "state_class":"measurement", "unit_of_measurement": "V", "friendly_name": "PV2 Voltage"}, "state": "'"$pv4_voltage"'"}' $HTTP_Connect_Type://$Home_Assistant_IP:$Home_Assistant_PORT/api/states/sensor.solarsynk_"$inverter_serial"_pv4_voltage $EntityLogOutput
-
 
 #Settings Sensors
 curl -s -k -X POST -H "Authorization: Bearer $HA_LongLiveToken" -H "Content-Type: application/json" -d '{"attributes": {"device_class": "time", "state_class":"measurement", "unit_of_measurement": "", "friendly_name": "Prog1 Time"}, "state": "'"$prog1_time"'"}' $HTTP_Connect_Type://$Home_Assistant_IP:$Home_Assistant_PORT/api/states/sensor.solarsynk_"$inverter_serial"_prog1_time $EntityLogOutput
@@ -562,29 +549,6 @@ curl -s -k -X POST -H "Authorization: Bearer $HA_LongLiveToken" -H "Content-Type
 curl -s -k -X POST -H "Authorization: Bearer $HA_LongLiveToken" -H "Content-Type: application/json" -d '{"attributes": {"unit_of_measurement": "", "friendly_name": "Inverter Overall State"}, "state": "'"$overall_state"'"}' $HTTP_Connect_Type://$Home_Assistant_IP:$Home_Assistant_PORT/api/states/sensor.solarsynk_"$inverter_serial"_overall_state $EntityLogOutput
 curl -s -k -X POST -H "Authorization: Bearer $HA_LongLiveToken" -H "Content-Type: application/json" -d '{"attributes": {"device_class": "temperature", "state_class":"measurement", "unit_of_measurement": "°C", "friendly_name": "Inverter DC Temp"}, "state": "'"$dc_temp"'"}' $HTTP_Connect_Type://$Home_Assistant_IP:$Home_Assistant_PORT/api/states/sensor.solarsynk_"$inverter_serial"_dc_temperature $EntityLogOutput
 curl -s -k -X POST -H "Authorization: Bearer $HA_LongLiveToken" -H "Content-Type: application/json" -d '{"attributes": {"device_class": "temperature", "state_class":"measurement", "unit_of_measurement": "°C", "friendly_name": "Inverter AC Temp"}, "state": "'"$ac_temp"'"}' $HTTP_Connect_Type://$Home_Assistant_IP:$Home_Assistant_PORT/api/states/sensor.solarsynk_"$inverter_serial"_ac_temperature $EntityLogOutput
-
-echo "------------------------------------------------------------------------------"
-echo "Reading settings entity -> solarsynk_"$inverter_serial"_inverter_settings"
-echo "------------------------------------------------------------------------------"
-CheckEntity=$(curl -s -k -X GET -H "Authorization: Bearer $HA_LongLiveToken" -H "Content-Type: application/json"  $HTTP_Connect_Type://$Home_Assistant_IP:$Home_Assistant_PORT/api/states/input_text.solarsynk_"$inverter_serial"_inverter_settings | jq -r '.message')
-
-if [ $CheckEntity == "Entity not found." ]
-then
-	echo "Entity does not exist! Manually create it for this inverter using the HA GUI in menu [Settings] -> [Devices & Services] -> [Helpers] tab -> [+ CREATE HELPER]. Choose [Text] and name it [solarsynk_"$inverter_serial"_inverter_settings]"
-	echo "Settings pushback system aborted. Note this is not an error, setting up inverter settings push back is optional. It just means you omitted this part of the setup."
-	echo "------------------------------------------------------------------------------"	
-else
-	InverterSettings=$(curl -s -k -X GET -H "Authorization: Bearer $HA_LongLiveToken" -H "Content-Type: application/json"  $HTTP_Connect_Type://$Home_Assistant_IP:$Home_Assistant_PORT/api/states/input_text.solarsynk_"$inverter_serial"_inverter_settings | jq -r '.state')
-	if [[ -z $InverterSettings ]]; then
-	  echo "Helper entity input_text.solarsynk_"$inverter_serial"_inverter_settings has no value. Therefore no inverter setting will be sent for change."
-	else
-		echo "Updating Helper: input_text.solarsynk_"$inverter_serial"_inverter_settings with:" $InverterSettings
-		curl -s -k -X POST -H "Content-Type: application/json" -H "authorization: Bearer $ServerAPIBearerToken" https://api.sunsynk.net/api/v1/common/setting/$inverter_serial/set -d $InverterSettings | jq -r '.'
-	fi 
-	#Reset settings entitities to prevent the same settings from being posted over and over
-	echo "Clearing previously set temporary settings."
-	curl -s -k -X POST -H "Authorization: Bearer $HA_LongLiveToken" -H "Content-Type: application/json" -d '{"attributes": {"unit_of_measurement": "", "friendly_name": "solarsynk_inverter_settings"}, "state": ""}' $HTTP_Connect_Type://$Home_Assistant_IP:$Home_Assistant_PORT/api/states/input_text.solarsynk_"$inverter_serial"_inverter_settings > /dev/null
-fi
 
 fi
 #EOF Curl failure
