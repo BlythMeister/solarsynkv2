@@ -1,3 +1,12 @@
+### 2025/01/24
+Version "2.1.23" - Check for a valid sunsynk token before fetching data.
+
+### 2025/01/03
+Version "2.1.22" - Added Phase 2 and 3 for load
+
+### 2025/01/03
+Version "2.1.21" - Corrected PV3 and PV4 Voltage, Power & Current mapping.
+
 ### 2024/11/16
 Version "2.1.20" - Fixed unary operator expected erros
 
