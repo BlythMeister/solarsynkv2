@@ -62,7 +62,7 @@ while true; do
     if [[ $? -ne 0 ]]
     then
         echo "Error getting token curl exit code " $? ". Retrying after sleep..."
-	sleep 2
+	sleep 10
     else
         if [ $Enable_Verbose_Log == "true" ]
         then
@@ -83,7 +83,7 @@ while true; do
         else
 	    ServerAPIBearerTokenMsg=$(jq -r '.msg' token.json)
 	    echo "Invalid token (" $ServerAPIBearerToken ") received. - " $ServerAPIBearerTokenMsg ". Retrying after a sleep..."
-            sleep 2
+            sleep 10
         fi
     fi
 done
