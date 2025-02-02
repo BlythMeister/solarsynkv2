@@ -54,7 +54,7 @@ then
 	echo "Valid token retrieved."
 	break
 else
-	echo "Invalid token received: Retrying..."
+	echo "Invalid token (" ${#ServerAPIBearerToken} ") received: Retrying..."
 	ServerAPIBearerToken=$(curl -s -k -X POST -H "Content-Type: application/json" https://api.sunsynk.net/oauth/token -d '{"areaCode": "sunsynk","client_id": "csp-web","grant_type": "password","password": "'"$sunsynk_pass"'","source": "sunsynk","username": "'"$sunsynk_user"'"}' | jq -r '.data.access_token')
 	sleep 2
 fi
