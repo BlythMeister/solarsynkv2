@@ -58,10 +58,11 @@ echo "Getting bearer token from solar service provider's API."
 
 while true; do
     # Fetch the token using curl
-    curl -s -k -X POST -H "Content-Type: application/json" https://api.sunsynk.net/oauth/token -d '{"areaCode": "sunsynk","client_id": "csp-web","grant_type": "password","password": "'"$sunsynk_pass"'","source": "sunsynk","username": "'"$sunsynk_user"'"}' -o token.json
+    curl -s -f -S -k -X POST -H "Content-Type: application/json" https://api.sunsynk.net/oauth/token -d '{"areaCode": "sunsynk","client_id": "csp-web","grant_type": "password","password": "'"$sunsynk_pass"'","source": "sunsynk","username": "'"$sunsynk_user"'"}' -o token.json
     if [[ $? -ne 0 ]]
     then
-        echo "Error getting token curl exit code" $? ". Retrying after sleep..."
+        echo "Error getting token curl exit code " $? ". Retrying after sleep..."
+	sleep 2
     else
         if [ $Enable_Verbose_Log == "true" ]
         then
@@ -79,10 +80,10 @@ while true; do
     	    echo "Valid token retrieved."
 	    break
         else
-	    echo "Invalid token (" ${#ServerAPIBearerToken} ") received: Retrying after a sleep..."
+	    echo "Invalid token (" $ServerAPIBearerToken ") received: Retrying after a sleep..."
+            sleep 2
         fi
     fi
-    sleep 2
 done
 echo "Bearer Token length:" ${#ServerAPIBearerToken}
 
