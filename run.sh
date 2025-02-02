@@ -47,17 +47,21 @@ echo "Getting bearer token from solar service provider's API."
 
 while true; do
     # Fetch the token using curl
-   ServerAPIBearerToken=$(curl -s -k -X POST -H "Content-Type: application/json" https://api.sunsynk.net/oauth/token -d '{"areaCode": "sunsynk","client_id": "csp-web","grant_type": "password","password": "'"$sunsynk_pass"'","source": "sunsynk","username": "'"$sunsynk_user"'"}' | jq -r '.data.access_token')
-    # Check if the token length is at least 5 characters
-if [ ${#ServerAPIBearerToken} -ge 300 ]
-then
-	echo "Valid token retrieved."
-	break
-else
-	echo "Invalid token (" ${#ServerAPIBearerToken} ") received: Retrying..."
-	ServerAPIBearerToken=$(curl -s -k -X POST -H "Content-Type: application/json" https://api.sunsynk.net/oauth/token -d '{"areaCode": "sunsynk","client_id": "csp-web","grant_type": "password","password": "'"$sunsynk_pass"'","source": "sunsynk","username": "'"$sunsynk_user"'"}' | jq -r '.data.access_token')
-	sleep 2
-fi
+    ServerAPIBearerToken=$(curl -s -k -X POST -H "Content-Type: application/json" https://api.sunsynk.net/oauth/token -d '{"areaCode": "sunsynk","client_id": "csp-web","grant_type": "password","password": "'"$sunsynk_pass"'","source": "sunsynk","username": "'"$sunsynk_user"'"}' | jq -r '.data.access_token')
+    if [[ $? -ne 0 ]]
+    then
+        echo "Error getting token curl exit code" $? ". Retrying after sleep..."
+    else
+        # Check if the token length is at least 10 characters
+        if [ ${#ServerAPIBearerToken} -ge 10 ]
+        then
+    	    echo "Valid token retrieved."
+	    break
+        else
+	    echo "Invalid token (" ${#ServerAPIBearerToken} ") received: Retrying after a sleep..."
+        fi
+    fi
+    sleep 2
 done
 echo "Bearer Token length:" ${#ServerAPIBearerToken}
 
