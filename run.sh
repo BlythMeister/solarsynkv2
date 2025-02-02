@@ -74,13 +74,15 @@ while true; do
         fi
 	
         ServerAPIBearerToken=$(jq -r '.data.access_token' token.json)
-        # Check if the token length is at least 10 characters
-        if [ ${#ServerAPIBearerToken} -ge 10 ]
+	ServerAPIBearerTokenSuccess=$(jq -r '.success' token.json)
+        
+        if [ $ServerAPIBearerTokenSuccess == "true" ]
         then
     	    echo "Valid token retrieved."
 	    break
         else
-	    echo "Invalid token (" $ServerAPIBearerToken ") received: Retrying after a sleep..."
+	    ServerAPIBearerTokenMsg=$(jq -r '.msg' token.json)
+	    echo "Invalid token (" $ServerAPIBearerToken ") received. - " $ServerAPIBearerTokenMsg ". Retrying after a sleep..."
             sleep 2
         fi
     fi
