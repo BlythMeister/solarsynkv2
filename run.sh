@@ -174,6 +174,7 @@ inverterinfo_ratepower=$(jq -r '.data.ratePower' inverterinfo.json)
 inverterinfo_plantid=$(jq -r '.data.plant.id' inverterinfo.json)
 inverterinfo_plantname=$(jq -r '.data.plant.name' inverterinfo.json)
 inverterinfo_serial=$(jq -r '.data.sn' inverterinfo.json)
+inverterinfo_updateat=$(jq -r '.data.updateAt' inverterinfo.json)
 
 echo ------------------------------------------------------------------------------
 echo "Inverter Information"
@@ -183,6 +184,7 @@ echo "Max Watts:" $inverterinfo_ratepower
 echo "Plant ID:" $inverterinfo_plantid
 echo "Plant Name:" $inverterinfo_plantname
 echo "Inverter S/N:" $inverterinfo_serial
+echo "Data Valid At:" $inverterinfo_updateat
 echo ------------------------------------------------------------------------------
 
 echo "Data fetched for serial $sunsynk_serial. Enable verbose logging to see more information."
@@ -588,6 +590,7 @@ if [ $use_timer != "null" ]; then curl -s -k -X POST -H "Authorization: Bearer $
 if [ $priority_load != "null" ]; then curl -s -k -X POST -H "Authorization: Bearer $HA_LongLiveToken" -H "Content-Type: application/json" -d '{"attributes": {"device_class": "", "state_class":"measurement", "unit_of_measurement": "", "friendly_name": "Priority Load"}, "state": "'"$priority_load"'"}' $HTTP_Connect_Type://$Home_Assistant_IP:$Home_Assistant_PORT/api/states/sensor.solarsynk_priority_load $EntityLogOutput; fi;
 
 #Other
+if [ $inverterinfo_updateat != "null" ]; then curl -s -k -X POST -H "Authorization: Bearer $HA_LongLiveToken" -H "Content-Type: application/json" -d '{"attributes": {"device_class": "timestamp", "state_class":"measurement", "friendly_name": "Updated At"}, "state": "'"$inverterinfo_updateat"'"}' $HTTP_Connect_Type://$Home_Assistant_IP:$Home_Assistant_PORT/api/states/sensor.solarsynk_updateat $EntityLogOutput; fi;
 if [ $overall_state != "null" ]; then curl -s -k -X POST -H "Authorization: Bearer $HA_LongLiveToken" -H "Content-Type: application/json" -d '{"attributes": {"unit_of_measurement": "", "friendly_name": "Inverter Overall State"}, "state": "'"$overall_state"'"}' $HTTP_Connect_Type://$Home_Assistant_IP:$Home_Assistant_PORT/api/states/sensor.solarsynk_overall_state $EntityLogOutput; fi;
 if [ $dc_temp != "null" ]; then curl -s -k -X POST -H "Authorization: Bearer $HA_LongLiveToken" -H "Content-Type: application/json" -d '{"attributes": {"device_class": "temperature", "state_class":"measurement", "unit_of_measurement": "°C", "friendly_name": "Inverter DC Temp"}, "state": "'"$dc_temp"'"}' $HTTP_Connect_Type://$Home_Assistant_IP:$Home_Assistant_PORT/api/states/sensor.solarsynk_dc_temperature $EntityLogOutput; fi;
 if [ $ac_temp != "null" ]; then curl -s -k -X POST -H "Authorization: Bearer $HA_LongLiveToken" -H "Content-Type: application/json" -d '{"attributes": {"device_class": "temperature", "state_class":"measurement", "unit_of_measurement": "°C", "friendly_name": "Inverter AC Temp"}, "state": "'"$ac_temp"'"}' $HTTP_Connect_Type://$Home_Assistant_IP:$Home_Assistant_PORT/api/states/sensor.solarsynk_ac_temperature $EntityLogOutput; fi;
