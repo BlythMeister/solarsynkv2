@@ -595,6 +595,29 @@ if [ $overall_state != "null" ]; then curl -s -k -X POST -H "Authorization: Bear
 if [ $dc_temp != "null" ]; then curl -s -k -X POST -H "Authorization: Bearer $HA_LongLiveToken" -H "Content-Type: application/json" -d '{"attributes": {"device_class": "temperature", "state_class":"measurement", "unit_of_measurement": "°C", "friendly_name": "Inverter DC Temp"}, "state": "'"$dc_temp"'"}' $HTTP_Connect_Type://$Home_Assistant_IP:$Home_Assistant_PORT/api/states/sensor.solarsynk_dc_temperature $EntityLogOutput; fi;
 if [ $ac_temp != "null" ]; then curl -s -k -X POST -H "Authorization: Bearer $HA_LongLiveToken" -H "Content-Type: application/json" -d '{"attributes": {"device_class": "temperature", "state_class":"measurement", "unit_of_measurement": "°C", "friendly_name": "Inverter AC Temp"}, "state": "'"$ac_temp"'"}' $HTTP_Connect_Type://$Home_Assistant_IP:$Home_Assistant_PORT/api/states/sensor.solarsynk_ac_temperature $EntityLogOutput; fi;
 
+echo "------------------------------------------------------------------------------"
+echo "Reading settings entity -> solarsynk_inverter_settings"
+echo "------------------------------------------------------------------------------"
+CheckEntity=$(curl -s -k -X GET -H "Authorization: Bearer $HA_LongLiveToken" -H "Content-Type: application/json"  $HTTP_Connect_Type://$Home_Assistant_IP:$Home_Assistant_PORT/api/states/input_text.solarsynk_inverter_settings | jq -r '.message')
+
+if [ $CheckEntity == "Entity not found." ]
+then
+	echo "Entity does not exist! Manually create it for this inverter using the HA GUI in menu [Settings] -> [Devices & Services] -> [Helpers] tab -> [+ CREATE HELPER]. Choose [Text] and name it [solarsynk_inverter_settings]"
+	echo "Settings pushback system aborted. Note this is not an error, setting up inverter settings push back is optional. It just means you omitted this part of the setup."
+	echo "------------------------------------------------------------------------------"	
+else
+	InverterSettings=$(curl -s -k -X GET -H "Authorization: Bearer $HA_LongLiveToken" -H "Content-Type: application/json"  $HTTP_Connect_Type://$Home_Assistant_IP:$Home_Assistant_PORT/api/states/input_text.solarsynk_inverter_settings | jq -r '.state')
+	if [[ -z $InverterSettings ]]; then
+	  echo "Helper entity input_text.solarsynk_inverter_settings has no value. Therefore no inverter setting will be sent for change."
+	else
+		echo "Updating Helper: input_text.solarsynk_inverter_settings with:" $InverterSettings
+		curl -s -k -X POST -H "Content-Type: application/json" -H "authorization: Bearer $ServerAPIBearerToken" https://api.sunsynk.net/api/v1/common/setting/$inverter_serial/set -d $InverterSettings | jq -r '.'
+	fi 
+	#Reset settings entitities to prevent the same settings from being posted over and over
+	echo "Clearing previously set temporary settings."
+	curl -s -k -X POST -H "Authorization: Bearer $HA_LongLiveToken" -H "Content-Type: application/json" -d '{"attributes": {"unit_of_measurement": "", "friendly_name": "solarsynk_inverter_settings"}, "state": ""}' $HTTP_Connect_Type://$Home_Assistant_IP:$Home_Assistant_PORT/api/states/input_text.solarsynk_inverter_settings > /dev/null
+fi
+
 fi
 #EOF Curl failure
 
