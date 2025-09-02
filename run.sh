@@ -60,7 +60,7 @@ echo "Plaintext saved to '$PASSWORD_PLAINTEXT_FILE'."
 # 3. Encrypt the plaintext and store the binary output in a variable.
 # We use 'openssl pkeyutl' for key-based utility operations.
 # The output is piped to 'base64' to store it as a string.
-sunsynk_pass=$(openssl pkeyutl -encrypt -pubin -inkey "$PASSWORD_PUBLIC_KEY_FILE" -in "$PASSWORD_PLAINTEXT_FILE" | base64)
+sunsynk_pass=$(openssl pkeyutl -encrypt -pubin -inkey "$PASSWORD_PUBLIC_KEY_FILE" -in "$PASSWORD_PLAINTEXT_FILE" | base64 -w 0)
 
 # 4. Check if the encryption was successful and print the result.
 if [ -n "$sunsynk_pass" ]; then
