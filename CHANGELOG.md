@@ -1,4 +1,7 @@
 ### 2025/09/02
+Version "3.2.5" - Correct variables
+
+### 2025/09/02
 Version "3.2.4" - Add openssl
 
 ### 2025/09/02

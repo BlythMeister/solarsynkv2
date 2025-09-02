@@ -5,7 +5,6 @@ do
 CONFIG_PATH=/data/options.json
 
 sunsynk_user=""
-sunsynk_pass=""
 sunsynk_pass_plain=""
 sunsynk_serial=""
 HA_LongLiveToken=""
@@ -61,17 +60,13 @@ echo "Plaintext saved to '$PASSWORD_PLAINTEXT_FILE'."
 # 3. Encrypt the plaintext and store the binary output in a variable.
 # We use 'openssl pkeyutl' for key-based utility operations.
 # The output is piped to 'base64' to store it as a string.
-sunsynk_pass=$(openssl pkeyutl \
-  -encrypt \
-  -pubin \
-  -inkey "$PASSWORD_PUBLIC_KEY_FILE" \
-  -in "$PASSWORD_PLAINTEXT_FILE" | base64)
+sunsynk_pass=$(openssl pkeyutl -encrypt -pubin -inkey "$PASSWORD_PUBLIC_KEY_FILE" -in "$PASSWORD_PLAINTEXT_FILE" | base64)
 
 # 4. Check if the encryption was successful and print the result.
-if [ -n "$sunsynk_pass_plain" ]; then
+if [ -n "$sunsynk_pass" ]; then
   echo "Encryption successful!"
-  echo "The encrypted data is now in the 'sunsynk_pass_plain' variable."
-  echo "It is a Base64-encoded string: $sunsynk_pass_plain"
+  echo "The encrypted data is now in the 'sunsynk_pass' variable."
+  echo "It is a Base64-encoded string: $sunsynk_pass"
 else
   echo "Encryption failed. Please check the key and file paths."
 fi
