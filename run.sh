@@ -58,7 +58,7 @@ echo "Getting bearer token from solar service provider's API."
 
 while true; do
     # Fetch the token using curl
-    curl -s -f -S -k -X POST -H "Content-Type: application/json" https://api.sunsynk.net/oauth/token -d '{"areaCode": "sunsynk","client_id": "csp-web","grant_type": "password","password": "'"$sunsynk_pass"'","source": "sunsynk","username": "'"$sunsynk_user"'"}' -o token.json
+    curl -s -f -S -k -X POST -H "Content-Type: application/json" https://api.sunsynk.net/oauth/token/new -d '{"client_id": "csp-web","grant_type": "password","password": "'"$sunsynk_pass"'","source": "sunsynk","username": "'"$sunsynk_user"'"}' -o token.json
     if [[ $? -ne 0 ]]
     then
         echo "Error getting token curl exit code " $? ". Retrying after sleep..."
