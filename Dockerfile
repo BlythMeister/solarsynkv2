@@ -5,6 +5,6 @@ FROM $BUILD_FROM
 COPY run.sh /
 RUN chmod a+x /run.sh
 
-RUN apt-get install openssl
+RUN apk add openssl
 
 CMD [ "/run.sh" ]
