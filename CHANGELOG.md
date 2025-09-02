@@ -1,4 +1,7 @@
 ### 2025/09/02
+Version "3.2.3" - Add openssl
+
+### 2025/09/02
 Version "3.2.2" - Update login/auth URL
 
 ### 2025/09/02
