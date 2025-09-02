@@ -1,3 +1,6 @@
+### 2025/09/02
+Version "3.2.1" - Update login/auth URL
+
 ### 2025/01/24
 Version "2.1.23" - Check for a valid sunsynk token before fetching data.
 
