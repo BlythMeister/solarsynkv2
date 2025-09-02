@@ -50,13 +50,13 @@ PASSWORD_PUBLIC_KEY_FILE="password_public_key.pem"
 PASSWORD_PLAINTEXT_FILE="password_plaintext.txt"
 
 # Fetch the public key from the API and store it in a variable.
-PASSWORD_PUBLIC_KEY_FILE=$(curl -s 'https://api.sunsynk.net/anonymous/publicKey?source=sunsynk' | jq -r '.data')
+PASSWORD_PUBLIC_KEY=$(curl -s 'https://api.sunsynk.net/anonymous/publicKey?source=sunsynk' | jq -r '.data')
 
 # Check if the public key was successfully fetched.
-if [ -n "$PASSWORD_PUBLIC_KEY_FILE" ]; then
+if [ -n "$PASSWORD_PUBLIC_KEY" ]; then
 	if [ $Enable_Verbose_Log == "true" ]
 	then
-		echo "Encrytion Key:" $PASSWORD_PUBLIC_KEY_FILE
+		echo "Encrytion Key:" $PASSWORD_PUBLIC_KEY
 	fi
 else
   echo "Error: Could not fetch public key. Please check the API endpoint and your internet connection."

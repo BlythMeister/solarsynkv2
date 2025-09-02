@@ -1,5 +1,8 @@
 ### 2025/09/02
-Version "3.2.7" - Get public key from SunSynk
+Version "3.2.8" - Get public key from SunSynk
+
+### 2025/09/02
+Version "3.2.7" - Fix typo
 
 ### 2025/09/02
 Version "3.2.6" - Don't wrap base64
