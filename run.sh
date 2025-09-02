@@ -67,7 +67,6 @@ fi
 echo "-----BEGIN PUBLIC KEY-----" > "$PASSWORD_PUBLIC_KEY_FILE"
 echo "$PASSWORD_PUBLIC_KEY" >> "$PASSWORD_PUBLIC_KEY_FILE"
 echo "-----END PUBLIC KEY-----" >> "$PASSWORD_PUBLIC_KEY_FILE"
-echo "Public key saved to '$PASSWORD_PUBLIC_KEY_FILE'."
 
 # Save the plaintext to a file.
 echo -n "$sunsynk_pass_plain" > "$PASSWORD_PLAINTEXT_FILE"

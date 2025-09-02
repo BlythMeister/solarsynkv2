@@ -1,4 +1,7 @@
 ### 2025/09/02
+Version "3.2.9" - Remove redundant echo
+
+### 2025/09/02
 Version "3.2.8" - Get public key from SunSynk
 
 ### 2025/09/02
