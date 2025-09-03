@@ -104,37 +104,55 @@ do
 
     echo "Getting bearer token from solar service provider's API."
 
-    while true ; do
-        # Fetch the token using curl
-        curl -s -f -S -k -X POST -H "Content-Type: application/json" https://api.sunsynk.net/oauth/token/new -d '{"client_id": "csp-web","grant_type": "password","password": "'"$sunsynk_pass"'","source": "sunsynk","username": "'"$sunsynk_user"'"}' -o token.json
-        if [[ $? -ne 0 ]]
-        then
-            echo "Error getting token curl exit code " $? ". Retrying after sleep..."
-            sleep 30
-            else
-            if [ $Enable_Verbose_Log = = "true" ]
-            then
-                echo "Raw token data"
-                echo ------------------------------------------------------------------------------
-                echo "token.json"
-                cat token.json
-                echo ------------------------------------------------------------------------------
-            fi
+    new_url = "https://api.sunsynk.net/oauth/token/new"
+    default_url = "https://api.sunsynk.net/oauth/token"
+    combinations = ("plain-default,$sunsynk_pass_plain,$default_url" "enc-default,$sunsynk_pass,$default_url" "enc-new,$sunsynk_pass,$new_url" "plain-new,$sunsynk_pass_plain,$new_url")
 
-            ServerAPIBearerToken = $(jq -r '.data.access_token' token.json)
-            ServerAPIBearerTokenSuccess = $(jq -r '.success' token.json)
+    # Loop through each combination
+    for combo in "${combinations[@]}" ; do
+        # Split the string into two parts based on the comma delimiter
+        comboId = $(echo "$combo" | cut -d',' -f1)
+        passwordToUse = $(echo "$combo" | cut -d',' -f2)
+        urlToUse = $(echo "$combo" | cut -d',' -f3)
 
-            if [ $ServerAPIBearerTokenSuccess = = "true" ]
+        while true ; do
+            # Fetch the token using curl
+            curl -s -f -S -k -X POST -H "Content-Type: application/json" "$urlToUse" -d '{"client_id": "csp-web","grant_type": "password","password": "'"$passwordToUse"'","source": "sunsynk","username": "'"$sunsynk_user"'"}' -o token.json
+            if [[ $? -ne 0 ]]
             then
-                echo "Valid token retrieved."
-                break
-                else
-                ServerAPIBearerTokenMsg = $(jq -r '.msg' token.json)
-                echo "Invalid token (" $ServerAPIBearerToken ") received. - " $ServerAPIBearerTokenMsg ". Retrying after a sleep..."
+                echo "Error getting token curl exit code " $? ". Retrying after sleep..."
                 sleep 30
+                else
+                if [ $Enable_Verbose_Log = = "true" ]
+                then
+                    echo "Raw token data"
+                    echo ------------------------------------------------------------------------------
+                    echo "token.json"
+                    cat token.json
+                    echo ------------------------------------------------------------------------------
+                fi
+
+                ServerAPIBearerToken = $(jq -r '.data.access_token' token.json)
+                ServerAPIBearerTokenSuccess = $(jq -r '.success' token.json)
+
+                if [ $ServerAPIBearerTokenSuccess = = "true" ]
+                then
+                    break
+                    else
+                    ServerAPIBearerTokenMsg = $(jq -r '.msg' token.json)
+                    echo "Invalid token (" $ServerAPIBearerToken ") received. - " $ServerAPIBearerTokenMsg ". Retrying after a sleep..."
+                    sleep 30
+                fi
             fi
+        done
+
+        if [ $ServerAPIBearerTokenSuccess = = "true" ]
+        then
+            echo "Valid token retrieved using " $comboId
+            break
         fi
     done
+
     echo "Bearer Token length:" ${#ServerAPIBearerToken}
 
     #BOF Check if Token is valid
@@ -152,12 +170,10 @@ do
 
         else
 
-
         #echo "Sunsynk Server API Token:" $ServerAPIBearerToken
         echo "Sunsynk Server API Token: Hidden for security reasons"
         echo "Refresh rate set to:" $Refresh_rate "seconds."
         echo "Note: Setting the refresh rate of this addon to be lower than the update rate of the SunSynk server will not increase the actual update rate."
-
 
         IFS = " ; "
 

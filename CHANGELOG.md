@@ -1,3 +1,6 @@
+### 2025/09/03
+Version "3.2.10" - Try each connection endpoint and password encrypted/plain text
+
 ### 2025/09/02
 Version "3.2.9" - Remove redundant echo
 
