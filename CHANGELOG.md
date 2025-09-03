@@ -1,4 +1,7 @@
 ### 2025/09/03
+Version "3.2.11" - Refactoring code to make easier to manage
+
+### 2025/09/03
 Version "3.2.10" - Try each connection endpoint and password encrypted/plain text
 
 ### 2025/09/02
