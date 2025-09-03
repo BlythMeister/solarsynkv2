@@ -1,4 +1,7 @@
 ### 2025/09/03
+Version "3.2.13" - Add new BMS and pac/pinv data
+
+### 2025/09/03
 Version "3.2.12" - Script fix
 
 ### 2025/09/03

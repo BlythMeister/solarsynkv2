@@ -292,6 +292,12 @@ parse_json_data() {
     SENSOR_DATA[day_load_energy]=$(jq -r '.data.dailyUsed' loaddata.json)
     SENSOR_DATA[day_pv_energy]=$(jq -r '.data.etoday' pvindata.json)
     
+    # Parse BMS detailed monitoring data
+    SENSOR_DATA[bms_soc]=$(jq -r '.data.bmsSoc' batterydata.json)
+    SENSOR_DATA[bms_voltage]=$(jq -r '.data.bmsVolt' batterydata.json)
+    SENSOR_DATA[bms_current]=$(jq -r '.data.bmsCurrent' batterydata.json)
+    SENSOR_DATA[bms_temperature]=$(jq -r '.data.bmsTemp' batterydata.json)
+    
     # Parse grid data
     SENSOR_DATA[grid_connected_status]=$(jq -r '.data.status' griddata.json)
     SENSOR_DATA[grid_frequency]=$(jq -r '.data.fac' griddata.json)
@@ -333,6 +339,10 @@ parse_json_data() {
     SENSOR_DATA[load_upsPowerL3]=$(jq -r '.data.upsPowerL3' loaddata.json)
     SENSOR_DATA[load_upsPowerTotal]=$(jq -r '.data.upsPowerTotal' loaddata.json)
     SENSOR_DATA[load_totalpower]=$(jq -r '.data.totalPower' loaddata.json)
+    
+    # Parse additional output data
+    SENSOR_DATA[output_pac]=$(jq -r '.data.pac' outputdata.json)
+    SENSOR_DATA[output_pinv]=$(jq -r '.data.pInv' outputdata.json)
     
     # Parse PV data
     SENSOR_DATA[pv1_current]=$(jq -r '.data.pvIV[0].ipv' pvindata.json)
@@ -489,6 +499,12 @@ declare -A SENSOR_CONFIGS=(
     ["day_load_energy"]="\"device_class\": \"energy\", \"state_class\":\"total_increasing\", \"unit_of_measurement\": \"kWh\"|Daily Load Energy"
     ["day_pv_energy"]="\"device_class\": \"energy\", \"state_class\":\"total_increasing\", \"unit_of_measurement\": \"kWh\"|Daily PV Energy"
     
+    # BMS detailed monitoring sensors
+    ["bms_soc"]="\"device_class\": \"battery\", \"state_class\":\"measurement\", \"unit_of_measurement\": \"%\"|BMS State of Charge"
+    ["bms_voltage"]="\"device_class\": \"voltage\", \"state_class\":\"measurement\", \"unit_of_measurement\": \"V\"|BMS Voltage"
+    ["bms_current"]="\"device_class\": \"current\", \"state_class\":\"measurement\", \"unit_of_measurement\": \"A\"|BMS Current"
+    ["bms_temperature"]="\"device_class\": \"temperature\", \"state_class\":\"measurement\", \"unit_of_measurement\": \"°C\"|BMS Temperature"
+    
     # Grid sensors
     ["grid_connected_status"]="\"unit_of_measurement\": \"\"|Grid Connection Status"
     ["grid_frequency"]="\"device_class\": \"frequency\", \"state_class\":\"measurement\", \"unit_of_measurement\": \"Hz\"|Grid Freq"
@@ -530,6 +546,10 @@ declare -A SENSOR_CONFIGS=(
     ["load_upsPowerL2"]="\"device_class\": \"power\", \"state_class\":\"measurement\", \"unit_of_measurement\": \"W\"|Load UPS Power L2"
     ["load_upsPowerL3"]="\"device_class\": \"power\", \"state_class\":\"measurement\", \"unit_of_measurement\": \"W\"|Load UPS Power L3"
     ["load_upsPowerTotal"]="\"device_class\": \"power\", \"state_class\":\"measurement\", \"unit_of_measurement\": \"W\"|Load UPS Power Total"
+    
+    # Output/Inverter additional sensors
+    ["output_pac"]="\"device_class\": \"power\", \"state_class\":\"measurement\", \"unit_of_measurement\": \"W\"|Output AC Power"
+    ["output_pinv"]="\"device_class\": \"power\", \"state_class\":\"measurement\", \"unit_of_measurement\": \"W\"|Inverter Input Power"
     
     # PV sensors
     ["pv1_current"]="\"device_class\": \"current\", \"state_class\":\"measurement\", \"unit_of_measurement\": \"A\"|PV1 Current"
