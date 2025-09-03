@@ -24,19 +24,22 @@ declare HTTP_Connect_Type="http"
 
 log_message() {
     local level="$1"
-    local message="$2"
+    local message="${2:-}"
     local timestamp=$(date '+%d/%m/%Y %H:%M:%S')
     
     case "$level" in
         "INFO")  echo "[$timestamp] INFO: $message" ;;
         "ERROR") echo "[$timestamp] ERROR: $message" ;;
-        "DEBUG") [[ "${CONFIG[Enable_Verbose_Log]}" == "true" ]] && echo "[$timestamp] DEBUG: $message" ;;
+        "DEBUG") [[ "${CONFIG[Enable_Verbose_Log]:-false}" == "true" ]] && echo "[$timestamp] DEBUG: $message" ;;
         "SEPARATOR") echo "$LOG_SEPARATOR" ;;
     esac
 }
 
 cleanup_temp_files() {
-    log_message "DEBUG" "Cleaning up temporary files"
+    # Only log if this isn't initial startup cleanup
+    if [[ -n "${CONFIG[Enable_Verbose_Log]:-}" ]]; then
+        log_message "DEBUG" "Cleaning up temporary files"
+    fi
     rm -f "$PASSWORD_PUBLIC_KEY_FILE" "$PASSWORD_PLAINTEXT_FILE"
     rm -f pvindata.json griddata.json loaddata.json batterydata.json 
     rm -f outputdata.json dcactemp.json inverterinfo.json settings.json token.json
@@ -648,17 +651,18 @@ main_loop() {
         log_message "SEPARATOR"
         local dt=$(date '+%d/%m/%Y %H:%M:%S')
         log_message "INFO" "Script execution date & time: $dt"
-        log_message "INFO" "Verbose logging is set to: ${CONFIG[Enable_Verbose_Log]}"
         
         cleanup_temp_files
         
         # Load configuration
         if ! load_configuration; then
             log_message "ERROR" "Configuration loading failed"
-            log_message "INFO" "Script will retry in ${CONFIG[Refresh_rate]:-300} seconds"
-            sleep "${CONFIG[Refresh_rate]:-300}"
+            log_message "INFO" "Script will retry in 300 seconds"
+            sleep 300
             continue
         fi
+        
+        log_message "INFO" "Verbose logging is set to: ${CONFIG[Enable_Verbose_Log]}"
         
         # Encrypt password
         if ! encrypt_password; then
