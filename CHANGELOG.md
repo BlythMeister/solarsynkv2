@@ -1,4 +1,7 @@
 ### 2025/11/12
+Version "3.2.16" - Exponential backoff trying credentials rather than fixed 30 second
+
+### 2025/11/12
 Version "3.2.15" - Syntax fix
 
 ### 2025/11/12
