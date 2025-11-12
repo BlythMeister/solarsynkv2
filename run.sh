@@ -151,7 +151,7 @@ get_bearer_token() {
         
         log_message "DEBUG" "Trying authentication method: $combo_id"
         local attempt=1
-        while attempt < 3; do
+        while (( attempt <= 3 )); do
             # Attempt to get token
             if curl -s -f -S -k -X POST -H "Content-Type: application/json" "$url_to_use" \
                 -d "{\"client_id\": \"csp-web\",\"grant_type\": \"password\",\"password\": \"$password_to_use\",\"source\": \"sunsynk\",\"username\": \"${CONFIG[sunsynk_user]}\"}" \
@@ -174,13 +174,13 @@ get_bearer_token() {
                 else
                     local token_msg=$(jq -r '.msg' token.json)
                     log_message "ERROR" "Invalid token received: $token_msg"
-                    attempt=attempt+1
-                    sleep 30
+                    ((attempt++))
+                    sleep 20
                 fi
             else
                 log_message "ERROR" "Token request failed with curl exit code $?. Retrying after sleep..."
-                attempt=attempt+1
-                sleep 30
+                ((attempt++))
+                sleep 20
             fi
         done
     done
