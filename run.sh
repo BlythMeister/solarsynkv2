@@ -139,9 +139,9 @@ get_bearer_token() {
     local new_url="https://api.sunsynk.net/oauth/token/new"
     local default_url="https://api.sunsynk.net/oauth/token"
     local combinations=(
-        "plain-default,${CONFIG[sunsynk_pass]},$default_url"
         "enc-default,${CONFIG[sunsynk_pass_encrypted]},$default_url"
         "enc-new,${CONFIG[sunsynk_pass_encrypted]},$new_url"
+        "plain-default,${CONFIG[sunsynk_pass]},$default_url"
         "plain-new,${CONFIG[sunsynk_pass]},$new_url"
     )
     
@@ -150,8 +150,8 @@ get_bearer_token() {
         IFS=',' read -r combo_id password_to_use url_to_use <<< "$combo"
         
         log_message "DEBUG" "Trying authentication method: $combo_id"
-        
-        while true; do
+        local attempt=1
+        while attempt < 3; do
             # Attempt to get token
             if curl -s -f -S -k -X POST -H "Content-Type: application/json" "$url_to_use" \
                 -d "{\"client_id\": \"csp-web\",\"grant_type\": \"password\",\"password\": \"$password_to_use\",\"source\": \"sunsynk\",\"username\": \"${CONFIG[sunsynk_user]}\"}" \
@@ -174,10 +174,12 @@ get_bearer_token() {
                 else
                     local token_msg=$(jq -r '.msg' token.json)
                     log_message "ERROR" "Invalid token received: $token_msg"
+                    attempt=attempt+1
                     sleep 30
                 fi
             else
                 log_message "ERROR" "Token request failed with curl exit code $?. Retrying after sleep..."
+                attempt=attempt+1
                 sleep 30
             fi
         done
