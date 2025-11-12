@@ -1,3 +1,6 @@
+### 2025/11/12
+Version "3.2.14" - Fix infinite retry loop on 1st password combination
+
 ### 2025/09/03
 Version "3.2.13" - Add new BMS and pac/pinv data
 
