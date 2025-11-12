@@ -145,19 +145,41 @@ get_bearer_token() {
         "plain-new,${CONFIG[sunsynk_pass]},$new_url"
     )
     
+    local backoff_times=(1 1 2 3 5 8 13)
+    local max_attempts=$(( ${#backoff_times[@]} + 1 )) # Total attempts = length of array + 1 (for the initial attempt)
+    
     # Try each authentication combination
     for combo in "${combinations[@]}"; do
-        IFS=',' read -r combo_id password_to_use url_to_use <<< "$combo"
+        local IFS=','
+        read -r combo_id password_to_use url_to_use <<< "$combo"
         
-        log_message "DEBUG" "Trying authentication method: $combo_id"
+        log_message "DEBUG" "Trying authentication method: $combo_id (Max attempts: $max_attempts)"
         local attempt=1
-        while (( attempt <= 3 )); do
+        
+        while (( attempt <= max_attempts )); do
+            
+            # --- Array Indexing Logic ---
+            local sleep_time=0
+            local sleep_index=$((attempt - 2)) # Index 0 is for the sleep before attempt 2
+            
+            if (( attempt > 1 )); then
+                # Check if the index is valid for the array
+                if (( sleep_index >= 0 && sleep_index < ${#backoff_times[@]} )); then
+                    sleep_time=${backoff_times[sleep_index]}
+                fi
+            fi
+            
+            if (( sleep_time > 0 )); then
+                log_message "DEBUG" "Attempt $((attempt - 1)) failed. Waiting $sleep_time seconds before attempt $attempt..."
+                sleep "$sleep_time"
+            fi
+            
             # Attempt to get token
             if curl -s -f -S -k -X POST -H "Content-Type: application/json" "$url_to_use" \
                 -d "{\"client_id\": \"csp-web\",\"grant_type\": \"password\",\"password\": \"$password_to_use\",\"source\": \"sunsynk\",\"username\": \"${CONFIG[sunsynk_user]}\"}" \
                 -o token.json; then
                 
-                log_message "DEBUG" "Token request successful for $combo_id"
+                log_message "DEBUG" "Token request successful for $combo_id (Attempt $attempt)"
                 
                 if [[ "${CONFIG[Enable_Verbose_Log]}" == "true" ]]; then
                     log_message "DEBUG" "Raw token data:"
@@ -173,14 +195,12 @@ get_bearer_token() {
                     return 0
                 else
                     local token_msg=$(jq -r '.msg' token.json)
-                    log_message "ERROR" "Invalid token received: $token_msg"
-                    ((attempt++))
-                    sleep 20
+                    log_message "ERROR" "Invalid token received: $token_msg (Attempt $attempt of $max_attempts)"
+                    ((attempt++)) 
                 fi
             else
-                log_message "ERROR" "Token request failed with curl exit code $?. Retrying after sleep..."
+                log_message "ERROR" "Token request failed with curl exit code $?. (Attempt $attempt of $max_attempts)"
                 ((attempt++))
-                sleep 20
             fi
         done
     done
