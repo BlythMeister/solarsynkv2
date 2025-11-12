@@ -1,4 +1,7 @@
 ### 2025/11/12
+Version "3.2.15" - Syntax fix
+
+### 2025/11/12
 Version "3.2.14" - Fix infinite retry loop on 1st password combination
 
 ### 2025/09/03
