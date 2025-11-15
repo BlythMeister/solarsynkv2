@@ -323,6 +323,9 @@ parse_json_data() {
     # Parse grid data
     SENSOR_DATA[grid_connected_status]=$(jq -r '.data.status' griddata.json)
     SENSOR_DATA[grid_frequency]=$(jq -r '.data.fac' griddata.json)
+    SENSOR_DATA[grid_powerac]=$(jq -r '.data.pac' griddata.json)
+    SENSOR_DATA[grid_powerreactive]=$(jq -r '.data.qac' griddata.json)
+    SENSOR_DATA[grid_powerfactor]=$(jq -r '.data.pf' griddata.json)
     SENSOR_DATA[grid_power]=$(jq -r '.data.vip[0].power' griddata.json)
     SENSOR_DATA[grid_voltage]=$(jq -r '.data.vip[0].volt' griddata.json)
     SENSOR_DATA[grid_current]=$(jq -r '.data.vip[0].current' griddata.json)
@@ -530,6 +533,9 @@ declare -A SENSOR_CONFIGS=(
     # Grid sensors
     ["grid_connected_status"]="\"unit_of_measurement\": \"\"|Grid Connection Status"
     ["grid_frequency"]="\"device_class\": \"frequency\", \"state_class\":\"measurement\", \"unit_of_measurement\": \"Hz\"|Grid Freq"
+    ["grid_power_ac"]="\"device_class\": \"power\", \"state_class\":\"measurement\", \"unit_of_measurement\": \"W\"|Grid Power AC"
+    ["grid_power_reactive"]="\"device_class\": \"power\", \"state_class\":\"measurement\", \"unit_of_measurement\": \"W\"|Grid Reactive Power"
+    ["grid_power_factor"]="\"device_class\": \"power\", \"state_class\":\"measurement\", \"unit_of_measurement\": \"W\"|Grid Power Factor"
     ["grid_power"]="\"device_class\": \"power\", \"state_class\":\"measurement\", \"unit_of_measurement\": \"W\"|Grid Power"
     ["grid_voltage"]="\"device_class\": \"voltage\", \"state_class\":\"measurement\", \"unit_of_measurement\": \"V\"|Grid Voltage"
     ["grid_current"]="\"device_class\": \"current\", \"state_class\":\"measurement\", \"unit_of_measurement\": \"A\"|Grid Current"
