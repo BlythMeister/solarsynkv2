@@ -1,3 +1,6 @@
+### 2025/11/15
+Version "3.2.17" - Add Grid Power AC, Grid Reactive Power & Grid Power Factor
+
 ### 2025/11/12
 Version "3.2.16" - Exponential backoff trying credentials rather than fixed 30 second
 
