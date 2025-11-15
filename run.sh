@@ -323,9 +323,9 @@ parse_json_data() {
     # Parse grid data
     SENSOR_DATA[grid_connected_status]=$(jq -r '.data.status' griddata.json)
     SENSOR_DATA[grid_frequency]=$(jq -r '.data.fac' griddata.json)
-    SENSOR_DATA[grid_powerac]=$(jq -r '.data.pac' griddata.json)
-    SENSOR_DATA[grid_powerreactive]=$(jq -r '.data.qac' griddata.json)
-    SENSOR_DATA[grid_powerfactor]=$(jq -r '.data.pf' griddata.json)
+    SENSOR_DATA[grid_power_ac]=$(jq -r '.data.pac' griddata.json)
+    SENSOR_DATA[grid_power_reactive]=$(jq -r '.data.qac' griddata.json)
+    SENSOR_DATA[grid_power_factor]=$(jq -r '.data.pf' griddata.json)
     SENSOR_DATA[grid_power]=$(jq -r '.data.vip[0].power' griddata.json)
     SENSOR_DATA[grid_voltage]=$(jq -r '.data.vip[0].volt' griddata.json)
     SENSOR_DATA[grid_current]=$(jq -r '.data.vip[0].current' griddata.json)
