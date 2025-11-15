@@ -324,15 +324,14 @@ parse_json_data() {
     SENSOR_DATA[grid_connected_status]=$(jq -r '.data.status' griddata.json)
     SENSOR_DATA[grid_frequency]=$(jq -r '.data.fac' griddata.json)
     SENSOR_DATA[grid_power]=$(jq -r '.data.pac' griddata.json)
-    SENSOR_DATA[grid_power_p1]=$(jq -r '.data.vip[0].power' griddata.json)
-    SENSOR_DATA[grid_voltage_p1]=$(jq -r '.data.vip[0].volt' griddata.json)
-    SENSOR_DATA[grid_current_p1]=$(jq -r '.data.vip[0].current' griddata.json)
-    SENSOR_DATA[grid_power_p2]=$(jq -r '.data.vip[1].power' griddata.json)
-    SENSOR_DATA[grid_voltage_p2]=$(jq -r '.data.vip[1].volt' griddata.json)
-    SENSOR_DATA[grid_current_p2]=$(jq -r '.data.vip[1].current' griddata.json)
-    SENSOR_DATA[grid_power_p3]=$(jq -r '.data.vip[2].power' griddata.json)
-    SENSOR_DATA[grid_voltage_p3]=$(jq -r '.data.vip[2].volt' griddata.json)
-    SENSOR_DATA[grid_current_p3]=$(jq -r '.data.vip[2].current' griddata.json)
+    SENSOR_DATA[grid_voltage]=$(jq -r '.data.vip[0].volt' griddata.json)
+    SENSOR_DATA[grid_current]=$(jq -r '.data.vip[0].current' griddata.json)
+    SENSOR_DATA[grid_power1]=$(jq -r '.data.vip[1].power' griddata.json)
+    SENSOR_DATA[grid_voltage1]=$(jq -r '.data.vip[1].volt' griddata.json)
+    SENSOR_DATA[grid_current1]=$(jq -r '.data.vip[1].current' griddata.json)
+    SENSOR_DATA[grid_power2]=$(jq -r '.data.vip[2].power' griddata.json)
+    SENSOR_DATA[grid_voltage2]=$(jq -r '.data.vip[2].volt' griddata.json)
+    SENSOR_DATA[grid_current2]=$(jq -r '.data.vip[2].current' griddata.json)
     
     # Parse inverter output data
     SENSOR_DATA[inverter_frequency]=$(jq -r '.data.fac' outputdata.json)
@@ -531,28 +530,27 @@ declare -A SENSOR_CONFIGS=(
     # Grid sensors
     ["grid_connected_status"]="\"unit_of_measurement\": \"\"|Grid Connection Status"
     ["grid_frequency"]="\"device_class\": \"frequency\", \"state_class\":\"measurement\", \"unit_of_measurement\": \"Hz\"|Grid Freq"
-    ["grid_power"]="\"device_class\": \"power\", \"state_class\":\"measurement\", \"unit_of_measurement\": \"W\"|Grid Power AC"
-    ["grid_power_p1"]="\"device_class\": \"power\", \"state_class\":\"measurement\", \"unit_of_measurement\": \"W\"|Grid Power Phase 1"
-    ["grid_voltage_p1"]="\"device_class\": \"voltage\", \"state_class\":\"measurement\", \"unit_of_measurement\": \"V\"|Grid Voltage Phase 1"
-    ["grid_current_p1"]="\"device_class\": \"current\", \"state_class\":\"measurement\", \"unit_of_measurement\": \"A\"|Grid Current Phase 1"
-    ["grid_power_p2"]="\"device_class\": \"power\", \"state_class\":\"measurement\", \"unit_of_measurement\": \"W\"|Grid Power Phase 2"
-    ["grid_voltage_p2"]="\"device_class\": \"voltage\", \"state_class\":\"measurement\", \"unit_of_measurement\": \"V\"|Grid Voltage Phase 2"
-    ["grid_current_p2"]="\"device_class\": \"current\", \"state_class\":\"measurement\", \"unit_of_measurement\": \"A\"|Grid Current Phase 2"
-    ["grid_power_p3"]="\"device_class\": \"power\", \"state_class\":\"measurement\", \"unit_of_measurement\": \"W\"|Grid Power Phase 3"
-    ["grid_voltage_p3"]="\"device_class\": \"voltage\", \"state_class\":\"measurement\", \"unit_of_measurement\": \"V\"|Grid Voltage Phase 3"
-    ["grid_current_p3"]="\"device_class\": \"current\", \"state_class\":\"measurement\", \"unit_of_measurement\": \"A\"|Grid Current Phase 3"
+    ["grid_power"]="\"device_class\": \"power\", \"state_class\":\"measurement\", \"unit_of_measurement\": \"W\"|Grid Power"
+    ["grid_voltage"]="\"device_class\": \"voltage\", \"state_class\":\"measurement\", \"unit_of_measurement\": \"V\"|Grid Voltage"
+    ["grid_current"]="\"device_class\": \"current\", \"state_class\":\"measurement\", \"unit_of_measurement\": \"A\"|Grid Current"
+    ["grid_power1"]="\"device_class\": \"power\", \"state_class\":\"measurement\", \"unit_of_measurement\": \"W\"|Grid Power L2"
+    ["grid_voltage1"]="\"device_class\": \"voltage\", \"state_class\":\"measurement\", \"unit_of_measurement\": \"V\"|Grid Voltage L2"
+    ["grid_current1"]="\"device_class\": \"current\", \"state_class\":\"measurement\", \"unit_of_measurement\": \"A\"|Grid Current L2"
+    ["grid_power2"]="\"device_class\": \"power\", \"state_class\":\"measurement\", \"unit_of_measurement\": \"W\"|Grid Power L3"
+    ["grid_voltage2"]="\"device_class\": \"voltage\", \"state_class\":\"measurement\", \"unit_of_measurement\": \"V\"|Grid Voltage L3"
+    ["grid_current2"]="\"device_class\": \"current\", \"state_class\":\"measurement\", \"unit_of_measurement\": \"A\"|Grid Current L3"
     
     # Inverter sensors
     ["inverter_frequency"]="\"device_class\": \"frequency\", \"state_class\":\"measurement\", \"unit_of_measurement\": \"Hz\"|Inverter Freq"
     ["inverter_current"]="\"device_class\": \"current\", \"state_class\":\"measurement\", \"unit_of_measurement\": \"A\"|Inverter Current"
     ["inverter_power"]="\"device_class\": \"power\", \"state_class\":\"measurement\", \"unit_of_measurement\": \"W\"|Inverter Power"
     ["inverter_voltage"]="\"device_class\": \"voltage\", \"state_class\":\"measurement\", \"unit_of_measurement\": \"V\"|Inverter Voltage"
-    ["inverter_current1"]="\"device_class\": \"current\", \"state_class\":\"measurement\", \"unit_of_measurement\": \"A\"|Inverter Current L1"
-    ["inverter_power1"]="\"device_class\": \"power\", \"state_class\":\"measurement\", \"unit_of_measurement\": \"W\"|Inverter Power L1"
-    ["inverter_voltage1"]="\"device_class\": \"voltage\", \"state_class\":\"measurement\", \"unit_of_measurement\": \"V\"|Inverter Voltage L1"
-    ["inverter_current2"]="\"device_class\": \"current\", \"state_class\":\"measurement\", \"unit_of_measurement\": \"A\"|Inverter Current L2"
-    ["inverter_power2"]="\"device_class\": \"power\", \"state_class\":\"measurement\", \"unit_of_measurement\": \"W\"|Inverter Power L2"
-    ["inverter_voltage2"]="\"device_class\": \"voltage\", \"state_class\":\"measurement\", \"unit_of_measurement\": \"V\"|Inverter Voltage L2"
+    ["inverter_current1"]="\"device_class\": \"current\", \"state_class\":\"measurement\", \"unit_of_measurement\": \"A\"|Inverter Current L2"
+    ["inverter_power1"]="\"device_class\": \"power\", \"state_class\":\"measurement\", \"unit_of_measurement\": \"W\"|Inverter Power L2"
+    ["inverter_voltage1"]="\"device_class\": \"voltage\", \"state_class\":\"measurement\", \"unit_of_measurement\": \"V\"|Inverter Voltage L2"
+    ["inverter_current2"]="\"device_class\": \"current\", \"state_class\":\"measurement\", \"unit_of_measurement\": \"A\"|Inverter Current L3"
+    ["inverter_power2"]="\"device_class\": \"power\", \"state_class\":\"measurement\", \"unit_of_measurement\": \"W\"|Inverter Power L3"
+    ["inverter_voltage2"]="\"device_class\": \"voltage\", \"state_class\":\"measurement\", \"unit_of_measurement\": \"V\"|Inverter Voltage L3"
     
     # Load sensors
     ["load_frequency"]="\"device_class\": \"frequency\", \"state_class\":\"measurement\", \"unit_of_measurement\": \"Hz\"|Load Freq"
