@@ -1,4 +1,7 @@
 ### 2025/11/15
+Version "3.2.18" - Fix typo
+
+### 2025/11/15
 Version "3.2.17" - Add Grid Power AC, Grid Reactive Power & Grid Power Factor
 
 ### 2025/11/12
