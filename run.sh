@@ -94,8 +94,12 @@ encrypt_password() {
     log_message "INFO" "Encrypting password"
     
     # Generate nonce and sign for public key request
-    # Use milliseconds - if %N not supported, append 000
-    local nonce=$(date +%s%3N 2>/dev/null || echo "$(date +%s)000")
+    # Use milliseconds - if %N not supported, append random digits
+    local nonce=$(date +%s%3N 2>/dev/null)
+    # Check if nonce contains %3N or is too short (means %N not supported)
+    if [[ "$nonce" == *"%"* ]] || [[ ${#nonce} -lt 13 ]]; then
+        nonce="$(date +%s)$(printf '%03d' $((RANDOM % 1000)))"
+    fi
     local sign_string="nonce=${nonce}&source=sunsynkPOWER_VIEW"
     local sign=$(echo -n "$sign_string" | md5sum | awk '{print $1}')
     
@@ -182,8 +186,12 @@ get_bearer_token() {
             fi
             
             # Attempt to get token
-            # Use milliseconds - if %N not supported, append 000
-            local token_nonce=$(date +%s%3N 2>/dev/null || echo "$(date +%s)000")
+            # Use milliseconds - if %N not supported, append random digits
+            local token_nonce=$(date +%s%3N 2>/dev/null)
+            # Check if nonce contains %3N or is too short (means %N not supported)
+            if [[ "$token_nonce" == *"%"* ]] || [[ ${#token_nonce} -lt 13 ]]; then
+                token_nonce="$(date +%s)$(printf '%03d' $((RANDOM % 1000)))"
+            fi
             
             # Calculate sign using first 10 characters of public key
             local token_sign_string="nonce=${token_nonce}&source=sunsynk${CONFIG[public_key_prefix]}"
