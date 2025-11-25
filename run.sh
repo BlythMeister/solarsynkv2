@@ -94,7 +94,8 @@ encrypt_password() {
     log_message "INFO" "Encrypting password"
     
     # Generate nonce and sign for public key request
-    local nonce=$(date +%s%3N)
+    # Use milliseconds - if %N not supported, append 000
+    local nonce=$(date +%s%3N 2>/dev/null || echo "$(date +%s)000")
     local sign_string="nonce=${nonce}&source=sunsynkPOWER_VIEW"
     local sign=$(echo -n "$sign_string" | md5sum | awk '{print $1}')
     
@@ -181,7 +182,8 @@ get_bearer_token() {
             fi
             
             # Attempt to get token
-            local token_nonce=$(date +%s%3N)
+            # Use milliseconds - if %N not supported, append 000
+            local token_nonce=$(date +%s%3N 2>/dev/null || echo "$(date +%s)000")
             
             # Calculate sign using first 10 characters of public key
             local token_sign_string="nonce=${token_nonce}&source=sunsynk${CONFIG[public_key_prefix]}"
