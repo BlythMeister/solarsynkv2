@@ -142,10 +142,10 @@ get_bearer_token() {
         "enc-default,${CONFIG[sunsynk_pass_encrypted]},$default_url"
         "enc-new,${CONFIG[sunsynk_pass_encrypted]},$new_url"
         "plain-default,${CONFIG[sunsynk_pass]},$default_url"
-        "plain-new,${CONFIG[sunsynk_pass]},$new_url"
+        #"plain-new,${CONFIG[sunsynk_pass]},$new_url"
     )
     
-    local backoff_times=(1 1 2 3 5 8 13)
+    local backoff_times=(1 3 5)
     local max_attempts=$(( ${#backoff_times[@]} + 1 )) # Total attempts = length of array + 1 (for the initial attempt)
     
     # Try each authentication combination
