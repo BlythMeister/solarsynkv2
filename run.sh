@@ -147,8 +147,8 @@ get_bearer_token() {
     local new_url="https://api.sunsynk.net/oauth/token/new"
     local default_url="https://api.sunsynk.net/oauth/token"
     local combinations=(
-        "enc-default,${CONFIG[sunsynk_pass_encrypted]},$default_url"
         "enc-new,${CONFIG[sunsynk_pass_encrypted]},$new_url"
+        "enc-default,${CONFIG[sunsynk_pass_encrypted]},$default_url"
     )
     
     local backoff_times=(1 3 5)
@@ -187,8 +187,16 @@ get_bearer_token() {
             local token_sign_string="nonce=${token_nonce}&source=sunsynk${CONFIG[public_key_prefix]}"
             local token_sign=$(echo -n "$token_sign_string" | md5sum | awk '{print $1}')
             
+            # Build payload
+            local payload="{\"client_id\": \"csp-web\",\"grant_type\": \"password\",\"password\": \"$password_to_use\",\"source\": \"sunsynk\",\"username\": \"${CONFIG[sunsynk_user]}\",\"sign\": \"$token_sign\",\"nonce\": $token_nonce}"
+            
+            log_message "DEBUG" "Token request URL: $url_to_use"
+            log_message "DEBUG" "Token sign string: $token_sign_string"
+            log_message "DEBUG" "Token sign: $token_sign"
+            log_message "DEBUG" "Token payload: $payload"
+            
             if curl -s -f -S -k -X POST -H "Content-Type: application/json" "$url_to_use" \
-                -d "{\"client_id\": \"csp-web\",\"grant_type\": \"password\",\"password\": \"$password_to_use\",\"source\": \"sunsynk\",\"username\": \"${CONFIG[sunsynk_user]}\",\"sign\": \"$token_sign\",\"nonce\": $token_nonce}" \
+                -d "$payload" \
                 -o token.json; then
                 
                 log_message "DEBUG" "Token request successful for $combo_id (Attempt $attempt)"
