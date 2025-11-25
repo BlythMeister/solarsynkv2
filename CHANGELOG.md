@@ -1,3 +1,6 @@
+### 2025/11/25
+Version "3.2.20" - Login Updates
+
 ### 2025/11/15
 Version "3.2.19" - Rename Phased Grid
 
