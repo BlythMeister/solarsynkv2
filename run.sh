@@ -93,9 +93,14 @@ load_configuration() {
 encrypt_password() {
     log_message "INFO" "Encrypting password"
     
+    # Generate nonce and sign for public key request
+    local nonce=$(date +%s%3N)
+    local sign_string="nonce=${nonce}&source=sunsynkPOWER_VIEW"
+    local sign=$(echo -n "$sign_string" | md5sum | awk '{print $1}')
+    
     # Fetch public key
     local public_key
-    public_key=$(curl -s 'https://api.sunsynk.net/anonymous/publicKey?source=sunsynk' | jq -r '.data')
+    public_key=$(curl -s "https://api.sunsynk.net/anonymous/publicKey?source=sunsynk&sign=${sign}&nonce=$nonce" | jq -r '.data')
     
     if [[ -z "$public_key" || "$public_key" == "null" ]]; then
         log_message "ERROR" "Could not fetch public key from API"
@@ -103,6 +108,9 @@ encrypt_password() {
     fi
     
     log_message "DEBUG" "Encryption Key: $public_key"
+    
+    # Store first 10 characters of public key for token sign calculation
+    CONFIG[public_key_prefix]="${public_key:0:10}"
     
     # Save public key to file
     {
@@ -141,8 +149,6 @@ get_bearer_token() {
     local combinations=(
         "enc-default,${CONFIG[sunsynk_pass_encrypted]},$default_url"
         "enc-new,${CONFIG[sunsynk_pass_encrypted]},$new_url"
-        "plain-default,${CONFIG[sunsynk_pass]},$default_url"
-        #"plain-new,${CONFIG[sunsynk_pass]},$new_url"
     )
     
     local backoff_times=(1 3 5)
@@ -175,8 +181,14 @@ get_bearer_token() {
             fi
             
             # Attempt to get token
+            local token_nonce=$(date +%s%3N)
+            
+            # Calculate sign using first 10 characters of public key
+            local token_sign_string="nonce=${token_nonce}&source=sunsynk${CONFIG[public_key_prefix]}"
+            local token_sign=$(echo -n "$token_sign_string" | md5sum | awk '{print $1}')
+            
             if curl -s -f -S -k -X POST -H "Content-Type: application/json" "$url_to_use" \
-                -d "{\"client_id\": \"csp-web\",\"grant_type\": \"password\",\"password\": \"$password_to_use\",\"source\": \"sunsynk\",\"username\": \"${CONFIG[sunsynk_user]}\"}" \
+                -d "{\"client_id\": \"csp-web\",\"grant_type\": \"password\",\"password\": \"$password_to_use\",\"source\": \"sunsynk\",\"username\": \"${CONFIG[sunsynk_user]}\",\"sign\": \"$token_sign\",\"nonce\": \"$token_nonce\"}" \
                 -o token.json; then
                 
                 log_message "DEBUG" "Token request successful for $combo_id (Attempt $attempt)"
