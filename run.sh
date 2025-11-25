@@ -188,7 +188,7 @@ get_bearer_token() {
             local token_sign=$(echo -n "$token_sign_string" | md5sum | awk '{print $1}')
             
             if curl -s -f -S -k -X POST -H "Content-Type: application/json" "$url_to_use" \
-                -d "{\"client_id\": \"csp-web\",\"grant_type\": \"password\",\"password\": \"$password_to_use\",\"source\": \"sunsynk\",\"username\": \"${CONFIG[sunsynk_user]}\",\"sign\": \"$token_sign\",\"nonce\": \"$token_nonce\"}" \
+                -d "{\"client_id\": \"csp-web\",\"grant_type\": \"password\",\"password\": \"$password_to_use\",\"source\": \"sunsynk\",\"username\": \"${CONFIG[sunsynk_user]}\",\"sign\": \"$token_sign\",\"nonce\": $token_nonce}" \
                 -o token.json; then
                 
                 log_message "DEBUG" "Token request successful for $combo_id (Attempt $attempt)"
