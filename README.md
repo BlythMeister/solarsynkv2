@@ -7,6 +7,16 @@ This Home Assistant integration was originally based solely on a bash script but
 You are welcome to continue using this repository, but please note that no further updates or improvements will be provided.
 
 
+## ☕ Support This Project
+
+If you find this project useful, consider supporting it:
+
+[![Buy Me a Coffee](https://img.shields.io/badge/Buy%20Me%20A%20Coffee-Support-yellow?style=for-the-badge&logo=buy-me-a-coffee)](https://www.buymeacoffee.com/mailmartins)
+
+Or visit: [https://www.buymeacoffee.com/mailmartins](https://buymeacoffee.com/mailmartins)
+
+
+
 ![](https://github.com/martinville/solarsynk_test/blob/main/logo.png)
 
 
