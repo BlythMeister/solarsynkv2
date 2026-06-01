@@ -1,4 +1,4 @@
-![](https://github.com/martinville/solarsynk_test/blob/main/logo.png)
+![](https://github.com/blythmeister/solarsynkv2/blob/main/logo.png)
 
 
 ## How it works
@@ -7,6 +7,6 @@ Please also note that this add-on only populates sensor values with data. It doe
 
 This add-on was developed for Sunsynk Region 2 customers only. Supports multiple inverters.
 
-See for more information: https://github.com/martinville/solarsynkv2/blob/main/DOCS.md
+See for more information: https://github.com/blythmeister/solarsynkv2/blob/main/DOCS.md
 
-![](https://github.com/martinville/solarsynk/blob/main/solarsynkstarted.png)
+![](https://github.com/blythmeister/solarsynkv2/blob/main/solarsynkstarted.png)

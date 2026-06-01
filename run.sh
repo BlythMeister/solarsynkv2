@@ -432,6 +432,7 @@ parse_json_data() {
     SENSOR_DATA[battery_shutdown_cap]=$(jq -r '.data.batteryShutdownCap' settings.json)
     SENSOR_DATA[use_timer]=$(jq -r '.data.peakAndVallery' settings.json)
     SENSOR_DATA[priority_load]=$(jq -r '.data.energyMode' settings.json)
+    SENSOR_DATA[work_mode]=$(jq -r '.data.sysWorkMode' settings.json)
     
     # Parse temperature data
     SENSOR_DATA[dc_temp]=$(jq -r '.data.infos[0].records[-1].value' dcactemp.json)
@@ -639,6 +640,7 @@ declare -A SENSOR_CONFIGS=(
     ["battery_shutdown_cap"]="\"device_class\": \"battery\", \"state_class\":\"measurement\", \"unit_of_measurement\": \"%\"|Battery Shutdown Cap"
     ["use_timer"]="\"unit_of_measurement\": \"\"|Use Timer"
     ["priority_load"]="\"unit_of_measurement\": \"\"|Priority Load"
+    ["work_mode"]="\"unit_of_measurement\": \"\"|Inverter Work Mode"
     
     # Temperature and other sensors
     ["inverterinfo_updateat"]="\"device_class\": \"timestamp\", \"state_class\":\"measurement\"|Updated At"
