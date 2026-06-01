@@ -712,202 +712,24 @@ handle_inverter_settings() {
         if [[ -z "$inverter_updates" || "$inverter_updates" == "null" ]]; then
             log_message "INFO" "Helper entity has no value. No inverter settings will be changed."
         else
-            log_message "INFO" "Fetching current inverter settings"
-            # Fetch current settings from inverter
-            if ! curl -s -k -X GET -H "Content-Type: application/json" -H "authorization: Bearer $ServerAPIBearerToken" \
-                "https://api.sunsynk.net/api/v1/common/setting/${CONFIG[sunsynk_serial]}/read" -o settings_current.json; then
-                log_message "ERROR" "Failed to fetch current settings"
-                return 1
-            fi
-            
-            log_message "INFO" "Merging settings updates into current settings"
-            log_message "DEBUG" "Settings update JSON: $inverter_updates"
-            
-            # Extract current data
-            local current_data
-            current_data=$(jq '.data' settings_current.json)
-            
-            # Parse helper JSON payload
             local updates_json
             updates_json=$(echo "$inverter_updates" | jq -c '.' 2>/dev/null)
             if [[ -z "$updates_json" || "$updates_json" == "null" ]]; then
                 log_message "ERROR" "Settings helper value is not valid JSON. Skipping settings update."
                 return 1
             fi
-            
-            # Build a UI-compatible base payload from current settings.
-            # This aligns the outbound payload with the smaller schema used by the web UI.
-            local base_payload
-            base_payload=$(jq -cn --argjson current "$current_data" '
-                {
-                    sn: ($current.sn // null),
-                    safetyType: ($current.safetyType // null),
-                    battMode: ($current.battMode // null),
-                    solarSell: ($current.solarSell // null),
-                    pvMaxLimit: ($current.pvMaxLimit // null),
-                    energyMode: ($current.energyMode // null),
-                    peakAndVallery: ($current.peakAndVallery // null),
-                    sysWorkMode: ($current.sysWorkMode // null),
-                    sellTime1: ($current.sellTime1 // null),
-                    sellTime2: ($current.sellTime2 // null),
-                    sellTime3: ($current.sellTime3 // null),
-                    sellTime4: ($current.sellTime4 // null),
-                    sellTime5: ($current.sellTime5 // null),
-                    sellTime6: ($current.sellTime6 // null),
-                    sellTime1Pac: ($current.sellTime1Pac // null),
-                    sellTime2Pac: ($current.sellTime2Pac // null),
-                    sellTime3Pac: ($current.sellTime3Pac // null),
-                    sellTime4Pac: ($current.sellTime4Pac // null),
-                    sellTime5Pac: ($current.sellTime5Pac // null),
-                    sellTime6Pac: ($current.sellTime6Pac // null),
-                    cap1: ($current.cap1 // null),
-                    cap2: ($current.cap2 // null),
-                    cap3: ($current.cap3 // null),
-                    cap4: ($current.cap4 // null),
-                    cap5: ($current.cap5 // null),
-                    cap6: ($current.cap6 // null),
-                    sellTime1Volt: ($current.sellTime1Volt // null),
-                    sellTime2Volt: ($current.sellTime2Volt // null),
-                    sellTime3Volt: ($current.sellTime3Volt // null),
-                    sellTime4Volt: ($current.sellTime4Volt // null),
-                    sellTime5Volt: ($current.sellTime5Volt // null),
-                    sellTime6Volt: ($current.sellTime6Volt // null),
-                    sellTime1En: ($current.sellTime1En // null),
-                    sellTime2En: ($current.sellTime2En // null),
-                    sellTime3En: ($current.sellTime3En // null),
-                    sellTime4En: ($current.sellTime4En // null),
-                    sellTime5En: ($current.sellTime5En // null),
-                    sellTime6En: ($current.sellTime6En // null),
-                    zeroExportPower: ($current.zeroExportPower // null),
-                    solarMaxSellPower: ($current.solarMaxSellPower // null),
-                    gridPeakShaving: ($current.gridPeakShaving // null),
-                    lowVoltCrossEn: ($current.lowVoltCrossEn // null),
-                    generatorStartCap: ($current.generatorStartCap // null),
-                    time1on: ($current.time1on // null),
-                    time2on: ($current.time2on // null),
-                    time3on: ($current.time3on // null),
-                    time4on: ($current.time4on // null),
-                    time5on: ($current.time5on // null),
-                    time6on: ($current.time6on // null),
-                    genTime1on: ($current.genTime1on // null),
-                    genTime2on: ($current.genTime2on // null),
-                    genTime3on: ($current.genTime3on // null),
-                    genTime4on: ($current.genTime4on // null),
-                    genTime5on: ($current.genTime5on // null),
-                    genTime6on: ($current.genTime6on // null),
-                    batteryLowCap: ($current.batteryLowCap // null),
-                    mondayOn: ($current.mondayOn // null),
-                    tuesdayOn: ($current.tuesdayOn // null),
-                    wednesdayOn: ($current.wednesdayOn // null),
-                    thursdayOn: ($current.thursdayOn // null),
-                    fridayOn: ($current.fridayOn // null),
-                    saturdayOn: ($current.saturdayOn // null),
-                    sundayOn: ($current.sundayOn // null)
-                }
-            ')
 
-            if [[ -z "$base_payload" || "$base_payload" == "null" ]]; then
-                log_message "ERROR" "Could not build base UI settings payload. Skipping settings update."
-                return 1
-            fi
-
-            local merged_settings
-            merged_settings="$base_payload"
-
-            # Apply helper updates only to keys in the UI payload schema.
-            if echo "$updates_json" | jq -e 'type == "object"' >/dev/null 2>&1; then
-                merged_settings=$(jq -cn --argjson base "$base_payload" --argjson updates "$updates_json" '
-                    reduce ($updates | keys[]) as $key ($base;
-                        if has($key) then
-                            .[$key] = $updates[$key]
-                        else
-                            .
-                        end
-                    )
-                ' 2>/dev/null)
-                if [[ -z "$merged_settings" || "$merged_settings" == "null" ]]; then
-                    log_message "ERROR" "Could not build merged settings payload. Skipping settings update."
-                    return 1
-                fi
-
-                # Warn for keys in helper JSON that are outside the UI schema.
-                echo "$updates_json" | jq -r 'keys[]' | while read -r key; do
-                    if ! echo "$base_payload" | jq -e "has(\"$key\")" >/dev/null 2>&1; then
-                        log_message "WARN" "Setting key '$key' is not part of UI payload schema - skipping"
-                    fi
-                done
-            else
-                log_message "ERROR" "Settings helper JSON must be an object. Skipping settings update."
-                return 1
-            fi
-
-            # Normalize select fields to match UI payload typing conventions.
-            merged_settings=$(echo "$merged_settings" | jq -c '
-                def tobool:
-                    if type == "boolean" then .
-                    elif type == "string" then (ascii_downcase == "true")
-                    elif type == "number" then (. != 0)
-                    else false
-                    end;
-                .lowVoltCrossEn = (if .lowVoltCrossEn == null then "undefined" else (.lowVoltCrossEn | tostring) end)
-                | .time2on = (.time2on | tobool)
-                | .time6on = (.time6on | tobool)
-                | .mondayOn = (.mondayOn | tobool)
-                | .tuesdayOn = (.tuesdayOn | tobool)
-                | .wednesdayOn = (.wednesdayOn | tobool)
-                | .thursdayOn = (.thursdayOn | tobool)
-                | .fridayOn = (.fridayOn | tobool)
-                | .saturdayOn = (.saturdayOn | tobool)
-                | .sundayOn = (.sundayOn | tobool)
-            ' 2>/dev/null)
-            if [[ -z "$merged_settings" || "$merged_settings" == "null" ]]; then
-                log_message "ERROR" "Could not normalize settings payload types. Skipping settings update."
-                return 1
-            fi
-            
-            log_message "INFO" "Applying merged settings to inverter"
-            log_message "DEBUG" "Settings payload (compact): $merged_settings"
+            log_message "INFO" "Applying settings update payload from helper as-is"
+            log_message "DEBUG" "Settings payload (compact): $updates_json"
 
             local update_response
             update_response=$(curl -s -k -X POST \
                 -H "Content-Type: application/json" \
                 -H "authorization: Bearer $ServerAPIBearerToken" \
                 "https://api.sunsynk.net/api/v1/common/setting/${CONFIG[sunsynk_serial]}/set" \
-                -d "$merged_settings")
+                -d "$updates_json")
             log_message "DEBUG" "Settings update response: $update_response"
             echo "$update_response" | jq -r '.'
-
-            # Read back settings and verify keys requested by helper
-            local settings_after
-            settings_after=$(curl -s -k -X GET -H "Content-Type: application/json" -H "authorization: Bearer $ServerAPIBearerToken" \
-                "https://api.sunsynk.net/api/v1/common/setting/${CONFIG[sunsynk_serial]}/read")
-            local after_data
-            after_data=$(echo "$settings_after" | jq '.data' 2>/dev/null)
-
-            if [[ -n "$after_data" && "$after_data" != "null" ]]; then
-                log_message "INFO" "Verifying requested setting changes"
-                echo "$updates_json" | jq -r 'to_entries[] | @base64' | while read -r item; do
-                    local decoded
-                    decoded=$(echo "$item" | base64 -d)
-                    local key requested before after
-                    key=$(echo "$decoded" | jq -r '.key')
-                    requested=$(echo "$decoded" | jq -r '.value')
-                    before=$(echo "$current_data" | jq -r --arg key "$key" '.[$key] // "<missing>"')
-                    after=$(echo "$after_data" | jq -r --arg key "$key" '.[$key] // "<missing>"')
-
-                    if [[ "$after" == "$requested" ]]; then
-                        log_message "DEBUG" "Applied: $key (before=$before, after=$after)"
-                    elif [[ "$before" == "$requested" ]]; then
-                        log_message "WARN" "No change for $key (requested value already active: $requested)"
-                    else
-                        log_message "WARN" "Not applied: $key (requested=$requested, before=$before, after=$after)"
-                    fi
-                done
-            else
-                log_message "WARN" "Could not read back settings after update to verify changes"
-            fi
-            
-            rm -f settings_current.json
         fi
         
         # Clear settings to prevent repeated application

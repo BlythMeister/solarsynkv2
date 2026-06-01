@@ -1,4 +1,7 @@
 ### 2026/06/01
+Version "3.3.9" - REVERT setting update
+
+### 2026/06/01
 Version "3.3.8" - Fix setting update
 
 ### 2026/06/01
