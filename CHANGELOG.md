@@ -1,4 +1,7 @@
 ### 2026/06/01
+Version "3.3.1" - Docker fix
+
+### 2026/06/01
 Version "3.3.0" - Include Work mode sensor
 
 ### 2025/11/25
