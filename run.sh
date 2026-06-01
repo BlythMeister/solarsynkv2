@@ -727,37 +727,61 @@ handle_inverter_settings() {
             local current_data
             current_data=$(jq '.data' settings_current.json)
             
+            # Parse helper JSON payload
+            local updates_json
+            updates_json=$(echo "$inverter_updates" | jq -c '.' 2>/dev/null)
+            if [[ -z "$updates_json" || "$updates_json" == "null" ]]; then
+                log_message "ERROR" "Settings helper value is not valid JSON. Skipping settings update."
+                return 1
+            fi
+            
             # Start with current settings and update each field from inverter_updates
             local merged_settings
             merged_settings="$current_data"
             
             # Parse each key from updates and update if it exists in current settings
-            if echo "$inverter_updates" | jq -e 'type == "object"' >/dev/null 2>&1; then
+            if echo "$updates_json" | jq -e 'type == "object"' >/dev/null 2>&1; then
                 # Updates is a direct object
-                merged_settings=$(echo "$inverter_updates" | jq --argjson current "$current_data" 'reduce keys[] as $key ($current; 
-                    if . | has($key) then 
-                        .[$key] = $input[$key]
-                    else
-                        .
-                    end)' --arg input "$inverter_updates" 2>/dev/null || echo "$current_data")
+                merged_settings=$(jq -cn --argjson current "$current_data" --argjson updates "$updates_json" '
+                    reduce ($updates | keys[]) as $key ($current;
+                        if has($key) then
+                            .[$key] = $updates[$key]
+                        else
+                            .
+                        end
+                    )
+                ' 2>/dev/null)
+                if [[ -z "$merged_settings" || "$merged_settings" == "null" ]]; then
+                    log_message "ERROR" "Could not build merged settings payload. Skipping settings update."
+                    return 1
+                fi
                 
                 # Log warnings for keys that don't exist in current settings
-                echo "$inverter_updates" | jq -r 'keys[]' | while read -r key; do
+                echo "$updates_json" | jq -r 'keys[]' | while read -r key; do
                     if ! echo "$current_data" | jq -e "has(\"$key\")" >/dev/null 2>&1; then
                         log_message "WARN" "Setting key '$key' not found in current inverter settings - skipping"
                     fi
                 done
             else
                 log_message "DEBUG" "Using updates directly as settings"
-                merged_settings="$inverter_updates"
+                merged_settings="$updates_json"
             fi
             
             log_message "INFO" "Applying merged settings to inverter"
-            curl -s -k -X POST \
+            log_message "DEBUG" "Settings payload (compact): $merged_settings"
+            if [[ "${CONFIG[Enable_Verbose_Log]}" == "true" ]]; then
+                log_message "DEBUG" "Settings payload (pretty):"
+                echo "$merged_settings" | jq -r '.'
+            fi
+
+            local update_response
+            update_response=$(curl -s -k -X POST \
                 -H "Content-Type: application/json" \
                 -H "authorization: Bearer $ServerAPIBearerToken" \
                 "https://api.sunsynk.net/api/v1/common/setting/${CONFIG[sunsynk_serial]}/set" \
-                -d "$merged_settings" | jq -r '.'
+                -d "$merged_settings")
+            log_message "DEBUG" "Settings update response: $update_response"
+            echo "$update_response" | jq -r '.'
             
             rm -f settings_current.json
         fi
