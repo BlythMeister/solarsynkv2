@@ -43,7 +43,7 @@ cleanup_temp_files() {
     rm -f "$PASSWORD_PUBLIC_KEY_FILE" "$PASSWORD_PLAINTEXT_FILE"
     rm -f pvindata.json griddata.json loaddata.json batterydata.json 
     rm -f outputdata.json dcactemp.json inverterinfo.json settings.json token.json
-    rm -f tmpcurllog.json
+    rm -f tmpcurllog.json settings_current.json
 }
 
 # =============================================================================
@@ -417,6 +417,12 @@ parse_json_data() {
     SENSOR_DATA[prog4_time]=$(jq -r '.data.sellTime4' settings.json)
     SENSOR_DATA[prog5_time]=$(jq -r '.data.sellTime5' settings.json)
     SENSOR_DATA[prog6_time]=$(jq -r '.data.sellTime6' settings.json)
+    SENSOR_DATA[prog1_sell_enable]=$(jq -r '.data.sellTime1En' settings.json)
+    SENSOR_DATA[prog2_sell_enable]=$(jq -r '.data.sellTime2En' settings.json)
+    SENSOR_DATA[prog3_sell_enable]=$(jq -r '.data.sellTime3En' settings.json)
+    SENSOR_DATA[prog4_sell_enable]=$(jq -r '.data.sellTime4En' settings.json)
+    SENSOR_DATA[prog5_sell_enable]=$(jq -r '.data.sellTime5En' settings.json)
+    SENSOR_DATA[prog6_sell_enable]=$(jq -r '.data.sellTime6En' settings.json)
     SENSOR_DATA[prog1_charge]=$(jq -r '.data.time1on' settings.json)
     SENSOR_DATA[prog2_charge]=$(jq -r '.data.time2on' settings.json)
     SENSOR_DATA[prog3_charge]=$(jq -r '.data.time3on' settings.json)
@@ -625,6 +631,15 @@ declare -A SENSOR_CONFIGS=(
     ["prog4_time"]="\"device_class\": \"timestamp\", \"unit_of_measurement\": \"\"|Prog4 Time"
     ["prog5_time"]="\"device_class\": \"timestamp\", \"unit_of_measurement\": \"\"|Prog5 Time"
     ["prog6_time"]="\"device_class\": \"timestamp\", \"unit_of_measurement\": \"\"|Prog6 Time"
+    
+    # Settings sensors - Sell enable/disable
+    ["prog1_sell_enable"]="\"unit_of_measurement\": \"\"|Prog1 Sell Enable"
+    ["prog2_sell_enable"]="\"unit_of_measurement\": \"\"|Prog2 Sell Enable"
+    ["prog3_sell_enable"]="\"unit_of_measurement\": \"\"|Prog3 Sell Enable"
+    ["prog4_sell_enable"]="\"unit_of_measurement\": \"\"|Prog4 Sell Enable"
+    ["prog5_sell_enable"]="\"unit_of_measurement\": \"\"|Prog5 Sell Enable"
+    ["prog6_sell_enable"]="\"unit_of_measurement\": \"\"|Prog6 Sell Enable"
+    
     ["prog1_charge"]="\"device_class\": \"timestamp\", \"unit_of_measurement\": \"\"|Prog1 Charge"
     ["prog2_charge"]="\"device_class\": \"timestamp\", \"unit_of_measurement\": \"\"|Prog2 Charge"
     ["prog3_charge"]="\"device_class\": \"timestamp\", \"unit_of_measurement\": \"\"|Prog3 Charge"
@@ -687,21 +702,46 @@ handle_inverter_settings() {
         log_message "INFO" "Settings pushback system aborted. This is optional functionality."
         log_message "SEPARATOR"
     else
-        local inverter_settings
-        inverter_settings=$(curl -s -k -X GET \
+        local inverter_updates
+        inverter_updates=$(curl -s -k -X GET \
             -H "Authorization: Bearer ${CONFIG[HA_LongLiveToken]}" \
             -H "Content-Type: application/json" \
             "$HTTP_Connect_Type://${CONFIG[Home_Assistant_IP]}:${CONFIG[Home_Assistant_PORT]}/api/states/input_text.solarsynk_inverter_settings" | jq -r '.state')
         
-        if [[ -z "$inverter_settings" || "$inverter_settings" == "null" ]]; then
+        if [[ -z "$inverter_updates" || "$inverter_updates" == "null" ]]; then
             log_message "INFO" "Helper entity has no value. No inverter settings will be changed."
         else
-            log_message "INFO" "Updating inverter settings: $inverter_settings"
+            log_message "INFO" "Fetching current inverter settings"
+            # Fetch current settings from inverter
+            if ! curl -s -k -X GET -H "Content-Type: application/json" -H "authorization: Bearer $ServerAPIBearerToken" \
+                "https://api.sunsynk.net/api/v1/common/setting/${CONFIG[sunsynk_serial]}/read" -o settings_current.json; then
+                log_message "ERROR" "Failed to fetch current settings"
+                return 1
+            fi
+            
+            log_message "INFO" "Merging settings updates into current settings"
+            # Extract data from both JSON objects and merge them
+            local merged_settings
+            merged_settings=$(jq -n \
+                --argjson current "$(jq '.data' settings_current.json)" \
+                --argjson updates "$(echo "$inverter_updates" | jq -r '.data // .', if that's not valid as JSON, try to parse it as an object)" \
+                '($current + $updates)')
+            
+            # Handle case where updates might be the data object directly or wrapped
+            if ! merged_settings=$(jq -n --argjson current "$(jq '.data' settings_current.json)" --arg updates "$inverter_updates" '($current + ($updates | fromjson | if type == "object" and has("data") then .data else . end))' 2>/dev/null); then
+                # If merging fails, use updates directly
+                log_message "DEBUG" "Using updates directly without merging"
+                merged_settings="$inverter_updates"
+            fi
+            
+            log_message "INFO" "Applying merged settings to inverter"
             curl -s -k -X POST \
                 -H "Content-Type: application/json" \
                 -H "authorization: Bearer $ServerAPIBearerToken" \
                 "https://api.sunsynk.net/api/v1/common/setting/${CONFIG[sunsynk_serial]}/set" \
-                -d "$inverter_settings" | jq -r '.'
+                -d "$merged_settings" | jq -r '.'
+            
+            rm -f settings_current.json
         fi
         
         # Clear settings to prevent repeated application

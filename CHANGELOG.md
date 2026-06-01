@@ -1,4 +1,7 @@
 ### 2026/06/01
+Version "3.3.2" - Fix setting update
+
+### 2026/06/01
 Version "3.3.1" - Docker fix
 
 ### 2026/06/01
