@@ -722,14 +722,13 @@ handle_inverter_settings() {
             log_message "INFO" "Merging settings updates into current settings"
             # Extract data from both JSON objects and merge them
             local merged_settings
-            merged_settings=$(jq -n \
-                --argjson current "$(jq '.data' settings_current.json)" \
-                --argjson updates "$(echo "$inverter_updates" | jq -r '.data // .', if that's not valid as JSON, try to parse it as an object)" \
-                '($current + $updates)')
+            local current_data
+            current_data=$(jq '.data' settings_current.json)
             
-            # Handle case where updates might be the data object directly or wrapped
-            if ! merged_settings=$(jq -n --argjson current "$(jq '.data' settings_current.json)" --arg updates "$inverter_updates" '($current + ($updates | fromjson | if type == "object" and has("data") then .data else . end))' 2>/dev/null); then
-                # If merging fails, use updates directly
+            # Parse updates as JSON and merge
+            merged_settings=$(echo "$inverter_updates" | jq --argjson current "$current_data" '. as $updates | $current + ($updates | if type == "object" and has("data") then .data else . end)' 2>/dev/null)
+            
+            if [[ -z "$merged_settings" || "$merged_settings" == "null" ]]; then
                 log_message "DEBUG" "Using updates directly without merging"
                 merged_settings="$inverter_updates"
             fi
