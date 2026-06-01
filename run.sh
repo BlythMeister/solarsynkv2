@@ -735,15 +735,89 @@ handle_inverter_settings() {
                 return 1
             fi
             
-            # Start with current settings and update each field from inverter_updates
+            # Build a UI-compatible base payload from current settings.
+            # This aligns the outbound payload with the smaller schema used by the web UI.
+            local base_payload
+            base_payload=$(jq -cn --argjson current "$current_data" '
+                {
+                    sn: ($current.sn // null),
+                    safetyType: ($current.safetyType // null),
+                    battMode: ($current.battMode // null),
+                    solarSell: ($current.solarSell // null),
+                    pvMaxLimit: ($current.pvMaxLimit // null),
+                    energyMode: ($current.energyMode // null),
+                    peakAndVallery: ($current.peakAndVallery // null),
+                    sysWorkMode: ($current.sysWorkMode // null),
+                    sellTime1: ($current.sellTime1 // null),
+                    sellTime2: ($current.sellTime2 // null),
+                    sellTime3: ($current.sellTime3 // null),
+                    sellTime4: ($current.sellTime4 // null),
+                    sellTime5: ($current.sellTime5 // null),
+                    sellTime6: ($current.sellTime6 // null),
+                    sellTime1Pac: ($current.sellTime1Pac // null),
+                    sellTime2Pac: ($current.sellTime2Pac // null),
+                    sellTime3Pac: ($current.sellTime3Pac // null),
+                    sellTime4Pac: ($current.sellTime4Pac // null),
+                    sellTime5Pac: ($current.sellTime5Pac // null),
+                    sellTime6Pac: ($current.sellTime6Pac // null),
+                    cap1: ($current.cap1 // null),
+                    cap2: ($current.cap2 // null),
+                    cap3: ($current.cap3 // null),
+                    cap4: ($current.cap4 // null),
+                    cap5: ($current.cap5 // null),
+                    cap6: ($current.cap6 // null),
+                    sellTime1Volt: ($current.sellTime1Volt // null),
+                    sellTime2Volt: ($current.sellTime2Volt // null),
+                    sellTime3Volt: ($current.sellTime3Volt // null),
+                    sellTime4Volt: ($current.sellTime4Volt // null),
+                    sellTime5Volt: ($current.sellTime5Volt // null),
+                    sellTime6Volt: ($current.sellTime6Volt // null),
+                    sellTime1En: ($current.sellTime1En // null),
+                    sellTime2En: ($current.sellTime2En // null),
+                    sellTime3En: ($current.sellTime3En // null),
+                    sellTime4En: ($current.sellTime4En // null),
+                    sellTime5En: ($current.sellTime5En // null),
+                    sellTime6En: ($current.sellTime6En // null),
+                    zeroExportPower: ($current.zeroExportPower // null),
+                    solarMaxSellPower: ($current.solarMaxSellPower // null),
+                    gridPeakShaving: ($current.gridPeakShaving // null),
+                    lowVoltCrossEn: ($current.lowVoltCrossEn // null),
+                    generatorStartCap: ($current.generatorStartCap // null),
+                    time1on: ($current.time1on // null),
+                    time2on: ($current.time2on // null),
+                    time3on: ($current.time3on // null),
+                    time4on: ($current.time4on // null),
+                    time5on: ($current.time5on // null),
+                    time6on: ($current.time6on // null),
+                    genTime1on: ($current.genTime1on // null),
+                    genTime2on: ($current.genTime2on // null),
+                    genTime3on: ($current.genTime3on // null),
+                    genTime4on: ($current.genTime4on // null),
+                    genTime5on: ($current.genTime5on // null),
+                    genTime6on: ($current.genTime6on // null),
+                    batteryLowCap: ($current.batteryLowCap // null),
+                    mondayOn: ($current.mondayOn // null),
+                    tuesdayOn: ($current.tuesdayOn // null),
+                    wednesdayOn: ($current.wednesdayOn // null),
+                    thursdayOn: ($current.thursdayOn // null),
+                    fridayOn: ($current.fridayOn // null),
+                    saturdayOn: ($current.saturdayOn // null),
+                    sundayOn: ($current.sundayOn // null)
+                }
+            ')
+
+            if [[ -z "$base_payload" || "$base_payload" == "null" ]]; then
+                log_message "ERROR" "Could not build base UI settings payload. Skipping settings update."
+                return 1
+            fi
+
             local merged_settings
-            merged_settings="$current_data"
-            
-            # Parse each key from updates and update if it exists in current settings
+            merged_settings="$base_payload"
+
+            # Apply helper updates only to keys in the UI payload schema.
             if echo "$updates_json" | jq -e 'type == "object"' >/dev/null 2>&1; then
-                # Updates is a direct object
-                merged_settings=$(jq -cn --argjson current "$current_data" --argjson updates "$updates_json" '
-                    reduce ($updates | keys[]) as $key ($current;
+                merged_settings=$(jq -cn --argjson base "$base_payload" --argjson updates "$updates_json" '
+                    reduce ($updates | keys[]) as $key ($base;
                         if has($key) then
                             .[$key] = $updates[$key]
                         else
@@ -755,16 +829,16 @@ handle_inverter_settings() {
                     log_message "ERROR" "Could not build merged settings payload. Skipping settings update."
                     return 1
                 fi
-                
-                # Log warnings for keys that don't exist in current settings
+
+                # Warn for keys in helper JSON that are outside the UI schema.
                 echo "$updates_json" | jq -r 'keys[]' | while read -r key; do
-                    if ! echo "$current_data" | jq -e "has(\"$key\")" >/dev/null 2>&1; then
-                        log_message "WARN" "Setting key '$key' not found in current inverter settings - skipping"
+                    if ! echo "$base_payload" | jq -e "has(\"$key\")" >/dev/null 2>&1; then
+                        log_message "WARN" "Setting key '$key' is not part of UI payload schema - skipping"
                     fi
                 done
             else
-                log_message "DEBUG" "Using updates directly as settings"
-                merged_settings="$updates_json"
+                log_message "ERROR" "Settings helper JSON must be an object. Skipping settings update."
+                return 1
             fi
             
             log_message "INFO" "Applying merged settings to inverter"

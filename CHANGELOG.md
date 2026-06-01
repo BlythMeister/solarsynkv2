@@ -1,4 +1,7 @@
 ### 2026/06/01
+Version "3.3.7" - Fix setting update
+
+### 2026/06/01
 Version "3.3.6" - Fix setting update
 
 ### 2026/06/01
