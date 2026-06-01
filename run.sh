@@ -840,6 +840,30 @@ handle_inverter_settings() {
                 log_message "ERROR" "Settings helper JSON must be an object. Skipping settings update."
                 return 1
             fi
+
+            # Normalize select fields to match UI payload typing conventions.
+            merged_settings=$(echo "$merged_settings" | jq -c '
+                def tobool:
+                    if type == "boolean" then .
+                    elif type == "string" then (ascii_downcase == "true")
+                    elif type == "number" then (. != 0)
+                    else false
+                    end;
+                .lowVoltCrossEn = (if .lowVoltCrossEn == null then "undefined" else (.lowVoltCrossEn | tostring) end)
+                | .time2on = (.time2on | tobool)
+                | .time6on = (.time6on | tobool)
+                | .mondayOn = (.mondayOn | tobool)
+                | .tuesdayOn = (.tuesdayOn | tobool)
+                | .wednesdayOn = (.wednesdayOn | tobool)
+                | .thursdayOn = (.thursdayOn | tobool)
+                | .fridayOn = (.fridayOn | tobool)
+                | .saturdayOn = (.saturdayOn | tobool)
+                | .sundayOn = (.sundayOn | tobool)
+            ' 2>/dev/null)
+            if [[ -z "$merged_settings" || "$merged_settings" == "null" ]]; then
+                log_message "ERROR" "Could not normalize settings payload types. Skipping settings update."
+                return 1
+            fi
             
             log_message "INFO" "Applying merged settings to inverter"
             log_message "DEBUG" "Settings payload (compact): $merged_settings"
