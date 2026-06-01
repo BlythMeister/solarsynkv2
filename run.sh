@@ -29,6 +29,7 @@ log_message() {
     
     case "$level" in
         "INFO")  echo "[$timestamp] INFO: $message" ;;
+        "WARN")  echo "[$timestamp] WARN: $message" ;;
         "ERROR") echo "[$timestamp] ERROR: $message" ;;
         "DEBUG") [[ "${CONFIG[Enable_Verbose_Log]:-false}" == "true" ]] && echo "[$timestamp] DEBUG: $message" ;;
         "SEPARATOR") echo "$LOG_SEPARATOR" ;;
@@ -720,16 +721,34 @@ handle_inverter_settings() {
             fi
             
             log_message "INFO" "Merging settings updates into current settings"
-            # Extract data from both JSON objects and merge them
-            local merged_settings
+            log_message "DEBUG" "Settings update JSON: $inverter_updates"
+            
+            # Extract current data
             local current_data
             current_data=$(jq '.data' settings_current.json)
             
-            # Parse updates as JSON and merge
-            merged_settings=$(echo "$inverter_updates" | jq --argjson current "$current_data" '. as $updates | $current + ($updates | if type == "object" and has("data") then .data else . end)' 2>/dev/null)
+            # Start with current settings and update each field from inverter_updates
+            local merged_settings
+            merged_settings="$current_data"
             
-            if [[ -z "$merged_settings" || "$merged_settings" == "null" ]]; then
-                log_message "DEBUG" "Using updates directly without merging"
+            # Parse each key from updates and update if it exists in current settings
+            if echo "$inverter_updates" | jq -e 'type == "object"' >/dev/null 2>&1; then
+                # Updates is a direct object
+                merged_settings=$(echo "$inverter_updates" | jq --argjson current "$current_data" 'reduce keys[] as $key ($current; 
+                    if . | has($key) then 
+                        .[$key] = $input[$key]
+                    else
+                        .
+                    end)' --arg input "$inverter_updates" 2>/dev/null || echo "$current_data")
+                
+                # Log warnings for keys that don't exist in current settings
+                echo "$inverter_updates" | jq -r 'keys[]' | while read -r key; do
+                    if ! echo "$current_data" | jq -e "has(\"$key\")" >/dev/null 2>&1; then
+                        log_message "WARN" "Setting key '$key' not found in current inverter settings - skipping"
+                    fi
+                done
+            else
+                log_message "DEBUG" "Using updates directly as settings"
                 merged_settings="$inverter_updates"
             fi
             
