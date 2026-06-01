@@ -769,10 +769,6 @@ handle_inverter_settings() {
             
             log_message "INFO" "Applying merged settings to inverter"
             log_message "DEBUG" "Settings payload (compact): $merged_settings"
-            if [[ "${CONFIG[Enable_Verbose_Log]}" == "true" ]]; then
-                log_message "DEBUG" "Settings payload (pretty):"
-                echo "$merged_settings" | jq -r '.'
-            fi
 
             local update_response
             update_response=$(curl -s -k -X POST \
@@ -782,6 +778,36 @@ handle_inverter_settings() {
                 -d "$merged_settings")
             log_message "DEBUG" "Settings update response: $update_response"
             echo "$update_response" | jq -r '.'
+
+            # Read back settings and verify keys requested by helper
+            local settings_after
+            settings_after=$(curl -s -k -X GET -H "Content-Type: application/json" -H "authorization: Bearer $ServerAPIBearerToken" \
+                "https://api.sunsynk.net/api/v1/common/setting/${CONFIG[sunsynk_serial]}/read")
+            local after_data
+            after_data=$(echo "$settings_after" | jq '.data' 2>/dev/null)
+
+            if [[ -n "$after_data" && "$after_data" != "null" ]]; then
+                log_message "INFO" "Verifying requested setting changes"
+                echo "$updates_json" | jq -r 'to_entries[] | @base64' | while read -r item; do
+                    local decoded
+                    decoded=$(echo "$item" | base64 -d)
+                    local key requested before after
+                    key=$(echo "$decoded" | jq -r '.key')
+                    requested=$(echo "$decoded" | jq -r '.value')
+                    before=$(echo "$current_data" | jq -r --arg key "$key" '.[$key] // "<missing>"')
+                    after=$(echo "$after_data" | jq -r --arg key "$key" '.[$key] // "<missing>"')
+
+                    if [[ "$after" == "$requested" ]]; then
+                        log_message "DEBUG" "Applied: $key (before=$before, after=$after)"
+                    elif [[ "$before" == "$requested" ]]; then
+                        log_message "WARN" "No change for $key (requested value already active: $requested)"
+                    else
+                        log_message "WARN" "Not applied: $key (requested=$requested, before=$before, after=$after)"
+                    fi
+                done
+            else
+                log_message "WARN" "Could not read back settings after update to verify changes"
+            fi
             
             rm -f settings_current.json
         fi
